@@ -1,1 +1,938 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GRIMPATH</title></head><body style="background:#0b0f0d;color:#ddd;font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0"><div>GRIMPATH 載入中…</div><script>const parts=['github_parts/part1.txt','github_parts/part2.txt','github_parts/part3.txt','github_parts/part4.txt'];Promise.all(parts.map(p=>fetch(p).then(r=>{if(!r.ok)throw new Error(p);return r.text()}))).then(xs=>{document.open();document.write(xs.join(''));document.close()}).catch(e=>{document.body.innerHTML='<pre style="padding:20px">載入失敗：'+e+'</pre>'});</script></body></html>
+<!doctype html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>GRIMPATH v0.13</title><style>
+:root{--bg:#0f1513;--panel:#18211d;--line:#324039;--text:#e8eadf;--muted:#9ca69d;--gold:#d7b36a;--red:#c85f57;--green:#7fa779}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit;color:inherit}.app{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;padding:14px}
+.panel{background:linear-gradient(180deg,#19231f,#131b18);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 40px #0005}
+.main{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand h1{font-size:22px;margin:0;letter-spacing:.12em}.brand small{color:var(--muted)}
+.threat{min-width:210px}.threat-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}.bar{height:8px;background:#0b100e;border-radius:99px;overflow:hidden;border:1px solid #28332e}.bar>i{display:block;height:100%;background:linear-gradient(90deg,#896847,#d26f54)}
+.map-wrap{display:flex;justify-content:center;align-items:center;min-height:0;flex:1;overflow:auto;padding:8px}
+.map{display:grid;grid-template-columns:repeat(13,minmax(28px,46px));gap:4px;touch-action:manipulation}
+.tile{aspect-ratio:1;border:1px solid #2b3832;background:#18211d;border-radius:8px;display:grid;place-items:center;font-size:18px;position:relative;transition:.15s transform,.15s border-color,.15s background}
+.tile.fog{background:#101714;border-color:#1b2521}.tile.fog>*{opacity:0}.tile.rock{background:#202521;border-color:#4b5048}.tile.night-fog{background:#080d0b;border-color:#121a16;box-shadow:inset 0 0 18px #000}.tile.night-fog>*{opacity:0}.tile.rock span{filter:drop-shadow(0 2px 2px #000)}.tile.player{outline:2px solid #e0c27d;transform:scale(1.04);z-index:2}.tile.cleared{opacity:.42}.tile.boss{border-color:#7d4845}.tile.support{border-color:#4c5d88}.tile.weapon{border-color:#746044}.tile.shrine{border-color:#566f56}.tile.chest{border-color:#7d6b45}
+.tile .p{position:absolute;font-size:15px;filter:drop-shadow(0 2px 4px #000)}
+.message{padding:10px 12px;border:1px solid var(--line);background:#101714;border-radius:12px;color:#d9ddcf;min-height:43px}
+.controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.controls button,.action{background:#202b26;border:1px solid #46564e;border-radius:12px;padding:10px 16px;cursor:pointer}.controls button:hover,.action:hover{background:#2b3932}
+.side{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}.section{border:1px solid var(--line);border-radius:14px;padding:12px;background:#121a17}.section h3{margin:0 0 10px;font-size:13px;letter-spacing:.12em;color:#c9cfbf}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#0d1411;border:1px solid #28342e;border-radius:10px;padding:9px}.stat strong{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+.weapon-card{border:1px solid #6f6040;background:#211d16;border-radius:14px;padding:12px}.weapon-title{display:flex;justify-content:space-between;align-items:center}.weapon-title strong{font-size:17px}.tags{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.tag{font-size:10px;border:1px solid #4a5650;border-radius:999px;padding:3px 6px;color:#b9c1b7}.sockets{display:flex;gap:7px}.socket{width:42px;height:42px;border:2px solid #625a48;border-radius:50%;display:grid;place-items:center;background:#111714;font-size:16px}.socket.filled{border-color:#8795c5;background:#1c2230}
+.inv{display:flex;flex-direction:column;gap:7px}.inv-item{display:grid;grid-template-columns:36px 1fr auto;gap:8px;align-items:center;border:1px solid #303c36;border-radius:10px;padding:8px;background:#0f1613}.inv-item small{color:var(--muted);display:block}.inv-item button{background:#26322c;border:1px solid #46554e;border-radius:8px;padding:6px 9px}
+.combat{min-height:116px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;overflow:hidden;background:radial-gradient(circle at center,#26352f,#0d1411 70%)}.fighter{font-size:34px;z-index:2}.combat-log{font-size:12px;color:#cfd6ca;text-align:center;flex:1}.projectiles{position:absolute;inset:0;pointer-events:none}.bolt{position:absolute;width:10px;height:10px;border-radius:50%;background:#f6a84c;box-shadow:0 0 16px #ff8b31;animation:fly .65s linear forwards}@keyframes fly{from{left:20%;top:52%}to{left:76%;top:48%;opacity:.1}}
+.legend{font-size:11px;color:var(--muted);line-height:1.6}
+.end{position:fixed;inset:0;background:#07100dcc;display:grid;place-items:center;z-index:20}.end-card{width:min(440px,90vw);padding:24px;background:#17211d;border:1px solid #53635a;border-radius:18px;text-align:center}.hidden{display:none}
+
+/* v0.2 battle + inventory */
+.top-actions{display:flex;gap:8px;align-items:center}.daycycle{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #46564e;border-radius:10px;background:#121a17;font-size:12px;white-space:nowrap}.daycycle.night{border-color:#465073;background:#101523;color:#c9d6ff}.app.night .panel{box-shadow:0 12px 40px #0009}.app.night .map-wrap{background:radial-gradient(circle at center,#121a19,#070b0a 75%);border-radius:14px}.top-actions button{background:#202b26;border:1px solid #46564e;border-radius:10px;padding:8px 12px;cursor:pointer}.top-actions button:hover{background:#2b3932}
+.modal-backdrop{position:fixed;inset:0;background:#050a08d9;z-index:40;display:grid;place-items:center;padding:16px}.modal-backdrop.hidden{display:none}.modal-card{width:min(980px,96vw);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#1a2420,#0e1512);border:1px solid #56665d;border-radius:20px;box-shadow:0 24px 80px #000a}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #334139}.modal-head h2{margin:0;font-size:18px;letter-spacing:.08em}.close-btn{background:#202b26;border:1px solid #46564e;border-radius:10px;padding:8px 12px;cursor:pointer}
+.battle-shell{padding:16px}.battle-stage{height:380px;position:relative;overflow:hidden;border-radius:18px;border:1px solid #39483f;background:radial-gradient(circle at 50% 45%,#2e3f37 0,#17221e 45%,#09100d 100%);box-shadow:inset 0 -60px 100px #0007}.battle-stage:before{content:"";position:absolute;left:0;right:0;bottom:78px;height:2px;background:#6a796c44;box-shadow:0 18px 70px #9ead8d22}.battle-side{position:absolute;bottom:72px;width:150px;text-align:center;transition:.16s transform,.16s filter}.battle-side.player-side{left:8%}.battle-side.enemy-side{right:8%}.battle-unit{font-size:82px;filter:drop-shadow(0 10px 12px #0008);transform-origin:center bottom}.battle-name{font-weight:800;margin-top:4px}.battle-hp{width:140px;height:9px;background:#080d0b;border:1px solid #4b5b52;border-radius:99px;overflow:hidden;margin:7px auto}.battle-hp i{display:block;height:100%;background:#87ad79;transition:.2s width}.enemy-side .battle-hp i{background:#c76458}.battle-status{height:18px;font-size:12px;color:#d6c382}.battle-banner{position:absolute;left:50%;top:22px;transform:translateX(-50%);padding:8px 16px;border:1px solid #5b685f;border-radius:999px;background:#0b120fe8;font-size:13px;letter-spacing:.08em;z-index:3}.battle-skill{position:absolute;left:50%;top:78px;transform:translateX(-50%) scale(.9);opacity:0;padding:10px 18px;border-radius:12px;background:#251d13e8;border:1px solid #9a7645;color:#f2d6a0;font-weight:800;transition:.18s}.battle-skill.show{opacity:1;transform:translateX(-50%) scale(1)}.fx-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}.fx-projectile{position:absolute;left:21%;top:54%;width:18px;height:18px;border-radius:50%;background:#ff9b3e;box-shadow:0 0 10px #ffae52,0 0 30px #ff6d2b;animation:battleProjectile .42s ease-in forwards}.fx-arrow{width:34px;height:5px;border-radius:4px;background:#d8c58d;box-shadow:0 0 8px #fff3;transform-origin:center}.fx-lightning{position:absolute;left:25%;top:48%;width:50%;height:4px;background:#a9d8ff;box-shadow:0 0 12px #6cbcff,0 0 25px #6ca8ff;transform:rotate(-4deg);animation:flashZap .28s ease-out forwards}.fx-slash{position:absolute;left:62%;top:40%;width:90px;height:16px;border-radius:50%;border-top:6px solid #e5d19b;transform:rotate(-34deg);filter:drop-shadow(0 0 8px #fff7);animation:slashFx .3s ease-out forwards}.damage-float{position:absolute;font-weight:900;font-size:22px;color:#ffd39c;text-shadow:0 2px 4px #000;animation:damageFloat .65s ease-out forwards}.damage-float.hurt{color:#ff8f82}.battle-unit.hit{animation:unitHit .25s ease-out}.battle-unit.attack{animation:unitAttack .28s ease-out}.battle-unit.dead{filter:grayscale(1);opacity:.3;transform:rotate(18deg) translateY(14px)}
+.battle-info{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-top:12px}.battle-build,.battle-logbox{border:1px solid #344139;border-radius:14px;background:#101714;padding:12px}.battle-build h4,.battle-logbox h4{margin:0 0 8px;font-size:12px;letter-spacing:.1em;color:#cbd0c4}.battle-supports{display:flex;flex-wrap:wrap;gap:6px}.support-chip{font-size:11px;padding:5px 8px;border:1px solid #53615a;border-radius:999px;background:#18221d}.battle-logbox{font-size:12px;color:#aeb8b0;min-height:78px}.continue-battle{display:block;margin:12px auto 0;background:#73593a;border:1px solid #ae8957;border-radius:11px;padding:9px 18px;cursor:pointer}.continue-battle.hidden{display:none}
+.inventory-body{display:grid;grid-template-columns:360px 1fr;gap:14px;padding:14px}.equipped-pane,.bag-pane{border:1px solid #344139;border-radius:16px;background:#101714;padding:14px}.equipped-pane h3,.bag-pane h3{margin:0 0 12px;font-size:13px;letter-spacing:.1em}.big-weapon{font-size:20px;font-weight:800;margin-bottom:8px}.socket-row{display:flex;gap:10px;flex-wrap:wrap}.socket-slot{width:72px;height:72px;border-radius:50%;border:2px solid #665d4c;background:#0c120f;display:grid;place-items:center;text-align:center;padding:6px;font-size:11px;position:relative}.socket-slot strong{font-size:20px;display:block}.socket-slot.filled{border-color:#7d8fca;background:#171e2c}.socket-slot button{position:absolute;right:-5px;top:-5px;width:22px;height:22px;border-radius:50%;border:1px solid #657168;background:#202a25;font-size:11px;cursor:pointer}.build-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}.build-summary div{border:1px solid #2d3933;border-radius:10px;padding:9px;background:#0b110f}.build-summary strong{display:block;font-size:17px}.build-summary span{font-size:10px;color:#89958d}.bag-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bag-card{border:1px solid #344139;border-radius:12px;padding:10px;background:#131c18;display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center}.bag-card .ico{font-size:26px}.bag-card small{display:block;color:#8f9b93}.bag-card button{background:#25312b;border:1px solid #46564e;border-radius:8px;padding:7px 9px;cursor:pointer}.bag-empty{color:#89958d;padding:20px;text-align:center;border:1px dashed #344139;border-radius:12px}.menu-hint{font-size:11px;color:#8f9a92;margin-top:8px}
+@keyframes battleProjectile{0%{transform:translate(0,0) scale(.8)}100%{transform:translate(540px,-18px) scale(1.2);opacity:.15}}@keyframes flashZap{0%{opacity:0;transform:scaleX(.2) rotate(-4deg)}25%{opacity:1}100%{opacity:0;transform:scaleX(1) rotate(-4deg)}}@keyframes slashFx{0%{opacity:0;transform:translate(-30px,30px) rotate(-34deg) scale(.4)}30%{opacity:1}100%{opacity:0;transform:translate(30px,-25px) rotate(-34deg) scale(1.3)}}@keyframes damageFloat{0%{opacity:0;transform:translateY(5px) scale(.7)}25%{opacity:1;transform:translateY(-8px) scale(1.1)}100%{opacity:0;transform:translateY(-42px) scale(.9)}}@keyframes unitHit{0%{transform:translateX(0)}35%{transform:translateX(10px) scale(.94);filter:brightness(1.8)}100%{transform:translateX(0)}}@keyframes unitAttack{0%{transform:translateX(0)}45%{transform:translateX(28px) scale(1.06)}100%{transform:translateX(0)}}
+@media(max-width:760px){.battle-stage{height:330px}.battle-side{width:120px}.battle-side.player-side{left:2%}.battle-side.enemy-side{right:2%}.battle-unit{font-size:66px}.battle-hp{width:110px}.battle-info{grid-template-columns:1fr}.inventory-body{grid-template-columns:1fr}.bag-list{grid-template-columns:1fr}.modal-backdrop{padding:6px}.top-actions{gap:5px}.top-actions button{padding:7px 9px}}
+
+@media(max-width:900px){.app{grid-template-columns:1fr;padding:8px}.side{overflow:visible}.map{grid-template-columns:repeat(13,minmax(22px,1fr));width:100%}.tile{font-size:15px}.top{align-items:flex-start}.threat{min-width:150px}.main,.side{padding:10px}.controls{position:sticky;bottom:6px;z-index:5;background:#0f1513dd;padding:6px;border-radius:14px}}
+
+/* v0.4 visual polish */
+html,body{background:
+ radial-gradient(circle at 50% -10%,#263a2f 0,transparent 30%),
+ radial-gradient(circle at 10% 10%,#1a2b24 0,transparent 26%),
+ linear-gradient(180deg,#0a100d 0%,#101613 45%,#090d0b 100%)}
+body{position:relative;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:
+ radial-gradient(circle at 12% 8%,#d8b98010 0,transparent 18%),
+ radial-gradient(circle at 88% 14%,#8eb3930d 0,transparent 15%),
+ radial-gradient(circle at 50% 100%,#00000055 0,transparent 48%);
+ opacity:.95}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 4px)}
+.app{max-width:1440px;margin:0 auto;position:relative}
+.panel{position:relative;background:linear-gradient(180deg,#1c2722 0%,#121916 68%,#101613 100%);border-color:#42534c;box-shadow:0 18px 48px #0008,inset 0 1px 0 #ffffff12}
+.panel:before{content:"";position:absolute;inset:9px;border:1px solid #ffffff0d;border-radius:13px;pointer-events:none}
+.main.panel{overflow:hidden}
+.brand{position:relative;padding-left:44px}
+.brand:before{content:"✦";position:absolute;left:0;top:50%;transform:translateY(-56%);width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(180deg,#4b3a24,#24190f);border:1px solid #8a6a40;color:#f0d8a4;box-shadow:0 6px 18px #0008}
+.brand h1{font-size:24px;letter-spacing:.16em;background:linear-gradient(180deg,#f5e9bc 0%,#dda85a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 6px 18px #0008}
+.brand small{display:block;margin-top:2px;letter-spacing:.08em;color:#aeb6aa}
+.top{padding-bottom:6px;border-bottom:1px solid #22302a}
+.daycycle{background:linear-gradient(180deg,#17211c,#101613);border-color:#57685f;box-shadow:inset 0 1px 0 #ffffff12}
+.daycycle.night{background:linear-gradient(180deg,#101626,#0c1320);border-color:#4d5978;color:#d4ddff;box-shadow:0 0 0 1px #8ea4ff1a inset}
+.top-actions button,.controls button,.action,.close-btn,.bag-card button,.inv-item button,.continue-battle{transition:.18s transform,.18s background,.18s box-shadow,.18s border-color}
+.top-actions button:hover,.controls button:hover,.action:hover,.close-btn:hover,.bag-card button:hover,.inv-item button:hover,.continue-battle:hover{transform:translateY(-1px);box-shadow:0 8px 18px #0007}
+.map-wrap{position:relative;padding:18px;border:1px solid #27362f;border-radius:20px;background:
+ radial-gradient(circle at 50% 30%,#1a2520 0%,#101714 62%,#0c120f 100%);
+ box-shadow:inset 0 0 0 1px #ffffff09,inset 0 24px 40px #ffffff03}
+.map-wrap:before,.map-wrap:after{content:"";position:absolute;width:108px;height:108px;border:1px solid #8f754633;border-radius:22px;pointer-events:none}
+.map-wrap:before{left:12px;top:12px;border-right:none;border-bottom:none}
+.map-wrap:after{right:12px;bottom:12px;border-left:none;border-top:none}
+.map{padding:10px;border-radius:18px;background:radial-gradient(circle at center,#15201b,#0b110f 76%);box-shadow:inset 0 0 0 1px #ffffff08,0 10px 24px #0005}
+.tile{overflow:hidden;border-radius:12px;border-color:#304039;background:linear-gradient(180deg,#1e2b25,#151d1a);box-shadow:inset 0 1px 0 #ffffff12,0 5px 10px #0006}
+.tile:before{content:"";position:absolute;inset:2px;border-radius:9px;background:linear-gradient(180deg,#ffffff0a,transparent 45%);pointer-events:none}
+.tile:after{content:"";position:absolute;left:8px;right:8px;bottom:5px;height:10px;border-radius:50%;background:#00000038;filter:blur(3px);pointer-events:none}
+.tile .ground{position:absolute;inset:0;z-index:0;opacity:.88}
+.tile .ground:before{content:"";position:absolute;inset:0;border-radius:10px}
+.tile[data-variant="0"] .ground:before{background:radial-gradient(circle at 28% 28%,#314a3b 0 12%,transparent 12.5%),radial-gradient(circle at 68% 72%,#2a4034 0 10%,transparent 10.5%),linear-gradient(180deg,#243429,#1a251f)}
+.tile[data-variant="1"] .ground:before{background:radial-gradient(circle at 34% 72%,#32473a 0 12%,transparent 12.5%),radial-gradient(circle at 76% 26%,#284135 0 11%,transparent 11.5%),linear-gradient(180deg,#22322a,#16211d)}
+.tile[data-variant="2"] .ground:before{background:radial-gradient(circle at 68% 28%,#2c4638 0 12%,transparent 12.5%),radial-gradient(circle at 22% 62%,#35503f 0 10%,transparent 10.5%),linear-gradient(180deg,#233228,#18211d)}
+.tile[data-variant="3"] .ground:before{background:radial-gradient(circle at 50% 38%,#385544 0 11%,transparent 11.5%),radial-gradient(circle at 25% 75%,#293e33 0 10%,transparent 10.5%),linear-gradient(180deg,#24352b,#18231d)}
+.tile .deco{position:absolute;z-index:1;color:#b7c9ab26;line-height:1;pointer-events:none}
+.tile .deco.a{left:6px;top:5px;font-size:10px}
+.tile .deco.b{right:7px;bottom:6px;font-size:9px}
+.tile .glyph{position:relative;z-index:2;font-size:19px;filter:drop-shadow(0 2px 4px #0009)}
+.tile .p{z-index:3;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff5cf 0,#cf9d47 55%,#805823 100%);box-shadow:0 0 0 2px #1a2119,0 0 18px #f3c97555;bottom:4px;right:4px;left:auto;top:auto;font-size:13px}
+.tile.player{border-color:#d6b36d;transform:translateY(-1px) scale(1.03);box-shadow:0 0 0 2px #d6b36d55,inset 0 1px 0 #fff2,0 8px 14px #0008;animation:playerPulse 1.7s ease-in-out infinite}
+.tile.cleared{opacity:.55}
+.tile.fog{background:#0d1411;border-color:#1b2521;box-shadow:inset 0 0 0 1px #00000055}
+.tile.fog>*{opacity:0}
+.tile.night-fog{background:#050909;border-color:#111715;box-shadow:inset 0 0 22px #000,inset 0 0 0 1px #00000070}
+.tile.night-fog>*{opacity:0}
+.tile.rock .ground:before{background:radial-gradient(circle at 40% 30%,#6b7069 0 14%,transparent 14.5%),radial-gradient(circle at 70% 65%,#515750 0 16%,transparent 16.5%),linear-gradient(180deg,#333835,#232826)}
+.tile.rock{border-color:#65685f;background:linear-gradient(180deg,#2c322f,#1d211f)}
+.tile.enemy{border-color:#7a5e42;background:linear-gradient(180deg,#2c241b,#1d1711)}
+.tile.enemy .glyph{color:#f1cf98;text-shadow:0 0 14px #ffbb5538}
+.tile.chest{border-color:#8a744a;background:linear-gradient(180deg,#2c2418,#1a150f)}
+.tile.chest .glyph{color:#f4d88d}
+.tile.weapon{border-color:#857048;background:linear-gradient(180deg,#2a241b,#19140f)}
+.tile.weapon .glyph{color:#f1d5a0}
+.tile.support{border-color:#697bb0;background:linear-gradient(180deg,#1a2130,#121722)}
+.tile.support .glyph{color:#d6e0ff;text-shadow:0 0 14px #7da1ff66}
+.tile.shrine{border-color:#62815f;background:linear-gradient(180deg,#18261a,#101812)}
+.tile.shrine .glyph{color:#bbefb8;text-shadow:0 0 14px #7eff8e44}
+.tile.boss{border-color:#9a5953;background:linear-gradient(180deg,#2d1717,#170d0d)}
+.tile.boss .glyph{color:#ffb6ac;text-shadow:0 0 14px #ff6c5740}
+.message{position:relative;background:linear-gradient(180deg,#121917,#0d1411);border-color:#334139;box-shadow:inset 0 1px 0 #ffffff0c}
+.message:before{content:"旅誌";position:absolute;right:12px;top:9px;font-size:11px;letter-spacing:.12em;color:#6f7d72}
+.section{position:relative;background:linear-gradient(180deg,#141d19,#101714);border-color:#35453d;box-shadow:inset 0 1px 0 #ffffff0a}
+.section h3{display:flex;align-items:center;gap:7px;color:#d5d9cc}
+.section h3:before{content:"◆";font-size:10px;color:#d3ad68}
+.stat{background:linear-gradient(180deg,#101612,#0b110e);box-shadow:inset 0 1px 0 #ffffff08}
+.stat strong{color:#f0e1bf}
+.weapon-card{background:linear-gradient(180deg,#231d15,#17120d);border-color:#7c6b47;box-shadow:inset 0 1px 0 #ffffff0c}
+.tag,.support-chip{background:#18211d}
+.socket,.socket-slot{box-shadow:inset 0 1px 0 #ffffff08,0 5px 10px #0004}
+.combat-log{padding:8px 10px;border:1px solid #2f3d36;border-radius:12px;background:linear-gradient(180deg,#121916,#0d1310)}
+.battle-stage{background:radial-gradient(circle at 50% 35%,#34493f 0,#1a2622 42%,#0a100d 100%);border-color:#4b5b52;box-shadow:inset 0 -80px 120px #0008,inset 0 0 0 1px #ffffff08}
+.battle-stage:after{content:"";position:absolute;right:42px;top:34px;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#fff7d8 0,#d9bd74 38%,#7f6230 72%,transparent 74%);opacity:.85;box-shadow:0 0 30px #d6b86a44}
+.battle-shell{background:linear-gradient(180deg,#121916,#0e1411)}
+.modal-card{background:linear-gradient(180deg,#1a2420,#0d1411);border-color:#5c6d63;box-shadow:0 24px 90px #000c,inset 0 1px 0 #ffffff0d}
+.end-card{background:linear-gradient(180deg,#1a241f,#0f1714);box-shadow:0 24px 80px #000a,inset 0 1px 0 #ffffff10}
+.legend{background:linear-gradient(180deg,#141c19,#101613)}
+@keyframes playerPulse{0%,100%{transform:translateY(-1px) scale(1.03)}50%{transform:translateY(-2px) scale(1.055)}}
+@media(max-width:900px){.brand{padding-left:40px}.brand:before{width:28px;height:28px}.map-wrap{padding:12px}.map{padding:6px}.tile .glyph{font-size:17px}.message:before{display:none}}
+
+
+/* v0.5 skills + smith + richer map */
+.app{max-width:1500px}
+.map{gap:6px}
+.map-wrap{background:radial-gradient(circle at 50% 25%,#243128 0%,#101713 60%,#0b0f0d 100%),linear-gradient(180deg,#211a12,#0f1411);box-shadow:inset 0 0 0 1px #ffffff0a,inset 0 22px 40px #ffffff04,0 20px 44px #0008}
+.map-wrap:before,.map-wrap:after{border-color:#a489573d}
+.tile{border-radius:14px;transform:translateZ(0)}
+.tile .ground:after{content:"";position:absolute;inset:0;border-radius:10px;background:radial-gradient(circle at 30% 25%,#ffffff0b,transparent 26%),radial-gradient(circle at 70% 78%,#0000001f,transparent 24%)}
+.tile.empty .glyph{opacity:0}
+.tile.empty .deco{opacity:.7}
+.tile[data-variant="0"] .deco.a,.tile[data-variant="0"] .deco.b{color:#c2d6b52c}
+.tile[data-variant="1"] .deco.a,.tile[data-variant="1"] .deco.b{color:#d6c29a28}
+.tile[data-variant="2"] .deco.a,.tile[data-variant="2"] .deco.b{color:#9db8c92a}
+.tile[data-variant="3"] .deco.a,.tile[data-variant="3"] .deco.b{color:#b1c78f24}
+.tile.smith{border-color:#8c6841;background:linear-gradient(180deg,#302419,#1a140f)}
+.tile.smith .glyph{color:#ffca7f;text-shadow:0 0 14px #ffab3d55}
+.tile.smith .ground:before{background:radial-gradient(circle at 36% 34%,#704f32 0 12%,transparent 12.5%),radial-gradient(circle at 68% 66%,#3c3128 0 14%,transparent 14.5%),linear-gradient(180deg,#33261d,#211914)}
+.side.panel{background:linear-gradient(180deg,#181b17,#121513 26%,#0f1210 100%)}
+.section{background:linear-gradient(180deg,#151a17,#0f1311);border-color:#38443c}
+.skill-list{display:flex;flex-wrap:wrap;gap:8px}
+.skill-pill{min-width:0;border:1px solid #47544d;border-radius:12px;padding:8px 10px;background:linear-gradient(180deg,#171d19,#101512);display:flex;align-items:center;gap:8px;box-shadow:inset 0 1px 0 #ffffff08}
+.skill-pill .ico{font-size:18px}.skill-pill .meta{min-width:0}.skill-pill .meta b{display:block;font-size:12px}.skill-pill .meta span{display:block;font-size:10px;color:#97a39b}.skill-pill .rank{margin-left:auto;color:#d8b169;font-size:11px}
+.choice-body{padding:16px}.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.choice-card{padding:14px;border-radius:16px;border:1px solid #49564e;background:linear-gradient(180deg,#181f1b,#101512);box-shadow:0 14px 30px #0006,inset 0 1px 0 #ffffff0a;display:flex;flex-direction:column;gap:10px}.choice-card .head{display:flex;align-items:center;gap:10px}.choice-card .head .ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(180deg,#342916,#1a140d);border:1px solid #8e6c42;font-size:20px;color:#f1d296}.choice-card h4{margin:0;font-size:15px}.choice-card p{margin:0;color:#aeb8b0;font-size:12px;line-height:1.5}.choice-card small{color:#8c978f}.choice-card button{margin-top:auto;background:linear-gradient(180deg,#6b5337,#4b3927);border:1px solid #a6804d;border-radius:10px;padding:9px 12px;color:#f6e2bb;cursor:pointer}
+.smith-hero{margin-bottom:14px;padding:12px 14px;border:1px solid #4f4331;border-radius:14px;background:linear-gradient(180deg,#231b12,#14100c);color:#e0cfaa;font-size:13px}
+.choice-card.smith .head .ico{background:linear-gradient(180deg,#3b2b1b,#1c140d)}
+.choice-card.afford-false{opacity:.55}.choice-card.afford-false button{cursor:not-allowed;filter:grayscale(.15)}
+.legend{border:1px solid #313d37;border-radius:14px;padding:12px}
+.top-actions button,.controls button,.action,.close-btn{background:linear-gradient(180deg,#2a312d,#1e2521);border-color:#56645c}
+.threat .bar{background:#111613;border-color:#324039;box-shadow:inset 0 1px 0 #ffffff0a}
+.modal-head span{color:#aab4ad;font-size:12px}
+@media(max-width:980px){.choice-grid{grid-template-columns:1fr}.skill-list{display:grid;grid-template-columns:1fr}}
+
+
+.tile.rock .glyph{display:none}
+.rock-cluster{position:relative;display:block;width:24px;height:18px;z-index:2;filter:drop-shadow(0 2px 3px #0008)}
+.rock-cluster i{position:absolute;display:block;background:linear-gradient(180deg,#8d918b,#565a55);border:1px solid #313630;box-shadow:inset 0 1px 0 #ffffff18}
+.rock-cluster i:nth-child(1){left:1px;bottom:1px;width:11px;height:9px;border-radius:7px 7px 6px 6px;transform:rotate(-10deg)}
+.rock-cluster i:nth-child(2){left:8px;bottom:4px;width:12px;height:10px;border-radius:8px 8px 6px 6px;transform:rotate(8deg)}
+.rock-cluster i:nth-child(3){left:14px;bottom:0;width:8px;height:7px;border-radius:6px 6px 5px 5px;transform:rotate(-4deg)}
+
+
+/* v0.6 terrain decoration pass */
+.map{gap:5px;transform:rotate(.15deg)}
+.tile{border-radius:11px;box-shadow:inset 0 1px 0 #ffffff10,0 4px 9px #0005}
+.tile:nth-child(3n){transform:translateY(1px)}
+.tile:nth-child(5n){transform:translateX(1px)}
+.tile.player{transform:translateY(-1px) scale(1.04)!important}
+.tile .terrain-bit{position:absolute;z-index:1;pointer-events:none;opacity:.9}
+.tile .terrain-bit.grass{width:3px;height:10px;border-left:2px solid #72916b;border-radius:50%;transform:rotate(-14deg)}
+.tile .terrain-bit.grass:after{content:"";position:absolute;left:3px;top:2px;width:3px;height:9px;border-left:2px solid #5d7b59;transform:rotate(24deg)}
+.tile .terrain-bit.pebble{width:5px;height:4px;border-radius:50%;background:#777d74;box-shadow:7px 4px 0 #555b55,3px -5px 0 #666c64}
+.tile .terrain-bit.twig{width:13px;height:2px;background:#59472f;border-radius:3px;transform:rotate(18deg);box-shadow:5px -3px 0 -0.5px #4b3d2a}
+.tile .terrain-bit.crack{width:12px;height:1px;background:#0b100dcc;transform:rotate(-28deg);box-shadow:5px 4px 0 #0b100d88,-4px 3px 0 #0b100d66}
+.tile .terrain-bit.flower{width:4px;height:4px;border-radius:50%;background:#c7b274;box-shadow:4px 0 0 #9e8cb8,2px 3px 0 #c1cf8a}
+.tile .terrain-bit.path{left:0!important;top:44%!important;width:100%;height:8px!important;border-radius:0;background:linear-gradient(90deg,transparent,#75644a33 12%,#8f7c5b55 50%,#75644a33 88%,transparent);transform:rotate(var(--path-rot,0deg));filter:blur(.2px)}
+.tile.empty.path-tile .ground:before{background:linear-gradient(180deg,#2a362c,#1c251f),linear-gradient(90deg,#6e5d4333,#6e5d4333)}
+.tile.empty.path-tile{border-color:#4b493d}
+.tile.enemy:after,.tile.boss:after,.tile.smith:after,.tile.shrine:after,.tile.chest:after{content:"";position:absolute;inset:4px;border-radius:9px;border:1px dashed #ffffff12;z-index:1;pointer-events:none}
+.tile.shrine .ground:after{background:radial-gradient(circle at center,#78b87622,transparent 60%)}
+.tile.smith .ground:after{background:radial-gradient(circle at center,#ff9c4230,transparent 58%)}
+.tile.chest .ground:after{background:radial-gradient(circle at center,#d5b35b22,transparent 55%)}
+.tile.weapon .ground:after,.tile.support .ground:after{background:radial-gradient(circle at center,#8aa0d126,transparent 58%)}
+.tile.rock .rock-cluster{transform:scale(.92)}
+.map-wrap{position:relative;overflow:hidden}
+.map-wrap .edge-deco{position:absolute;pointer-events:none;z-index:0;color:#7f8b7650;font-size:18px}
+.map-wrap .edge-deco.e1{left:18px;top:18px;transform:rotate(-18deg)}
+.map-wrap .edge-deco.e2{right:24px;top:24px;transform:rotate(26deg)}
+.map-wrap .edge-deco.e3{left:26px;bottom:24px;transform:rotate(12deg)}
+.map-wrap .edge-deco.e4{right:18px;bottom:18px;transform:rotate(-22deg)}
+@media(max-width:900px){.map{gap:3px;transform:none}.tile .terrain-bit.path{height:6px!important}}
+
+
+/* v0.7 visual overhaul */
+.app{max-width:1520px}
+.main.panel,.side.panel{background:linear-gradient(180deg,#171b17 0%,#101411 100%);border-color:#5a614f}
+.main.panel{box-shadow:0 20px 60px #000a,inset 0 1px 0 #ffffff12}
+.side.panel{background:linear-gradient(180deg,#151813 0%,#0e120f 100%)}
+.brand h1{letter-spacing:.18em}
+.top{padding-bottom:10px}
+.map-wrap{padding:20px 22px;border-radius:24px;border:1px solid #65583d;background:
+ radial-gradient(circle at 50% 10%,#3a4335 0%,#1d241d 32%,#111612 76%),
+ linear-gradient(180deg,#33281b 0%,#171a16 100%);box-shadow:inset 0 0 0 1px #ffffff0d,inset 0 40px 60px #ffffff04,0 22px 50px #0008}
+.map{gap:2px;padding:14px;border-radius:22px;background:radial-gradient(circle at center,#1b241d 0%,#121914 62%,#0b100d 100%);box-shadow:inset 0 0 0 1px #ffffff08}
+.map-wrap:before,.map-wrap:after{border-color:#b4935a4f}
+.tile{border:none;border-radius:11px;background:transparent;box-shadow:none;overflow:hidden}
+.tile:after{display:none}
+.tile:before{display:none}
+.tile .ground{inset:0;border-radius:11px;overflow:hidden}
+.tile .ground:before{border-radius:11px;opacity:1}
+.tile.empty,.tile.enemy,.tile.weapon,.tile.support,.tile.shrine,.tile.chest,.tile.boss,.tile.smith,.tile.rock{box-shadow:inset 0 0 0 1px #00000020}
+.tile.empty .ground:before{background:
+ radial-gradient(circle at 18% 20%,#6e8f6130 0 8%,transparent 8.5%),
+ radial-gradient(circle at 70% 76%,#5b74542a 0 10%,transparent 10.5%),
+ radial-gradient(circle at 46% 38%,#7e5f3624 0 7%,transparent 7.5%),
+ linear-gradient(180deg,#324030 0%,#233028 58%,#1b251f 100%)}
+.tile.path-tile .ground:before{background:
+ linear-gradient(125deg,transparent 0 27%,#65573d55 27% 39%,transparent 39% 100%),
+ radial-gradient(circle at 18% 20%,#6e8f6130 0 8%,transparent 8.5%),
+ radial-gradient(circle at 70% 76%,#5b74542a 0 10%,transparent 10.5%),
+ linear-gradient(180deg,#334031 0%,#253129 58%,#1c2620 100%)}
+.tile .deco{display:none}
+.tile .terrain-bit{z-index:1;opacity:.9}
+.tile .terrain-bit.path{left:-10%;right:-10%;top:46%;height:8px;border-radius:20px;background:linear-gradient(90deg,transparent 0 8%,#8b73504f 18%,#715b414d 52%,#8b73504f 84%,transparent 92%);transform:rotate(-6deg)}
+.tile .terrain-bit.grass{width:16px;height:9px;background:none}
+.tile .terrain-bit.grass:before{content:"";position:absolute;left:0;bottom:0;width:3px;height:8px;border-radius:3px 3px 0 0;background:#96b07a;box-shadow:4px -1px 0 #7d9469,8px 0 0 #a3bd87,12px -2px 0 #7b9165}
+.tile .terrain-bit.pebble{width:13px;height:10px;background:none}
+.tile .terrain-bit.pebble:before{content:"";position:absolute;left:0;top:2px;width:5px;height:4px;border-radius:50%;background:#7b8178;box-shadow:5px -2px 0 #91988f,7px 4px 0 #686d66}
+.tile .terrain-bit.twig{width:15px;height:2px;border-radius:999px;background:#7b6545;transform:rotate(24deg)}
+.tile .terrain-bit.crack{width:15px;height:1px;background:#151a16;transform:rotate(-20deg);box-shadow:5px 4px 0 #171d18,-3px 3px 0 #171d18}
+.tile .terrain-bit.flower{width:14px;height:14px;background:none}
+.tile .terrain-bit.flower:before{content:"✿";position:absolute;left:0;top:-2px;font-size:11px;color:#d8cf92b5}
+.marker{position:relative;z-index:3;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;margin:auto;margin-top:8px;box-shadow:0 6px 16px #0007,inset 0 1px 0 #ffffff18;border:1px solid #00000055}
+.marker .glyph{font-size:15px;filter:drop-shadow(0 1px 2px #0007)}
+.marker-enemy{background:radial-gradient(circle at 35% 30%,#9e5c4f,#4b241d)}
+.marker-weapon{background:radial-gradient(circle at 35% 30%,#b39160,#4d3720)}
+.marker-support{background:radial-gradient(circle at 35% 30%,#6f84b5,#28314f)}
+.marker-shrine{background:radial-gradient(circle at 35% 30%,#87ab7f,#28412f)}
+.marker-chest{background:radial-gradient(circle at 35% 30%,#b59763,#4f3a24)}
+.marker-boss{background:radial-gradient(circle at 35% 30%,#b96456,#4d1d1d);width:30px;height:30px}
+.marker-smith{background:radial-gradient(circle at 35% 30%,#c8864f,#53321a)}
+.tile.rock .ground:before{background:linear-gradient(180deg,#364038,#252d27)}
+.rock-cluster{width:26px;height:18px;margin:auto;margin-top:10px}
+.rock-cluster i:nth-child(1){left:1px;bottom:2px;width:12px;height:10px}
+.rock-cluster i:nth-child(2){left:9px;bottom:5px;width:13px;height:11px}
+.rock-cluster i:nth-child(3){left:16px;bottom:1px;width:8px;height:8px}
+.tile.player{box-shadow:0 0 0 2px #d5b26b88,inset 0 0 0 1px #f6dea055;border-radius:12px;animation:playerPulse 1.8s ease-in-out infinite}
+.tile .p{width:22px;height:22px;bottom:4px;right:4px;border:1px solid #5f4927}
+.legend{background:linear-gradient(180deg,#141914,#0d110e);border-color:#4f584c;color:#d0d5c7}
+.message,.section,.weapon-card,.combat-log,.battle-shell,.modal-card,.end-card{border-color:#4a5446}
+.section h3:before{color:#c9a461}
+.weapon-card,.stat,.skill-pill,.choice-card{background:linear-gradient(180deg,#1a201b,#111512)}
+.top-actions button,.controls button,.action,.close-btn,.continue-battle,.bag-card button,.inv-item button{background:linear-gradient(180deg,#2e352f,#1e241f);border-color:#666f61}
+.battle-stage{background:radial-gradient(circle at 50% 30%,#475a49 0,#24312a 38%,#0f1511 100%)}
+.battle-stage:before{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(180deg,transparent 0%,#223026 50%,#151b17 100%)}
+.message:before{content:'遠征誌'}
+@media(max-width:900px){.map{gap:1px;padding:8px}.marker{width:24px;height:24px}.marker .glyph{font-size:13px}.map-wrap{padding:12px}}
+
+
+/* v0.8 road-map architecture */
+.map{gap:0;padding:10px;border-radius:20px;overflow:hidden;background:#172017;box-shadow:inset 0 0 0 1px #ffffff09,0 16px 32px #0007}
+.tile{border-radius:0!important;box-shadow:none!important;overflow:visible;background:transparent!important}
+.tile .ground{border-radius:0!important;overflow:visible}
+.tile .ground:before{border-radius:0!important}
+.tile.empty .ground:before,.tile.enemy .ground:before,.tile.weapon .ground:before,.tile.support .ground:before,.tile.shrine .ground:before,.tile.chest .ground:before,.tile.boss .ground:before,.tile.smith .ground:before,.tile.rock .ground:before{background:
+ radial-gradient(circle at 22% 22%,#6f8e5d2a 0 7%,transparent 7.5%),
+ radial-gradient(circle at 76% 74%,#58724825 0 9%,transparent 9.5%),
+ linear-gradient(180deg,#334432,#253529 58%,#1c2820 100%)}
+.tile:nth-child(4n+1) .ground:before{background:
+ radial-gradient(circle at 70% 25%,#81996a24 0 9%,transparent 9.5%),
+ linear-gradient(180deg,#344735,#26362a 58%,#1c2921 100%)}
+.tile:nth-child(4n+2) .ground:before{background:
+ radial-gradient(circle at 25% 70%,#76905d24 0 8%,transparent 8.5%),
+ linear-gradient(180deg,#314130,#243227 58%,#1b261f 100%)}
+.tile:nth-child(4n+3) .ground:before{background:
+ radial-gradient(circle at 74% 66%,#6c84592a 0 10%,transparent 10.5%),
+ linear-gradient(180deg,#364735,#26352a 58%,#1d2922 100%)}
+.road-net{position:absolute;inset:0;z-index:1;pointer-events:none}
+.road-net span{position:absolute;background:linear-gradient(90deg,#6a593d,#8a724b 42%,#705d3f);box-shadow:inset 0 1px 0 #c9ad7240,0 1px 2px #0004}
+.road-net .h{left:-2%;right:-2%;top:41%;height:20%;border-radius:12px}
+.road-net .v{top:-2%;bottom:-2%;left:41%;width:20%;border-radius:12px;background:linear-gradient(180deg,#6a593d,#8a724b 42%,#705d3f)}
+.road-net .dot{left:35%;top:35%;width:30%;height:30%;border-radius:50%;background:#826c48}
+.tile.road-junction .road-net .dot{box-shadow:0 0 0 3px #5d4d3440}
+.tile .terrain-bit{z-index:2}
+.tile .marker{z-index:4;margin-top:6px;width:30px;height:30px;border-radius:9px;transform:translateY(-1px);border:1px solid #1118;box-shadow:0 6px 14px #0008,inset 0 1px 0 #ffffff22}
+.marker-enemy{background:linear-gradient(180deg,#7c3c35,#3a1f1b)}
+.marker-weapon{background:linear-gradient(180deg,#8a7448,#4b3925)}
+.marker-support{background:linear-gradient(180deg,#536d9f,#2c3857)}
+.marker-shrine{background:linear-gradient(180deg,#5d815b,#2c482f)}
+.marker-chest{background:linear-gradient(180deg,#8d6f40,#4e3821)}
+.marker-boss{background:linear-gradient(180deg,#8b3f38,#431b1a)}
+.marker-smith{background:linear-gradient(180deg,#9a6338,#4e321d)}
+.tile.player{box-shadow:inset 0 0 0 2px #e2c27a88!important;z-index:5}
+.tile.player .ground:after{content:"";position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,#f0d99322 0,transparent 66%);box-shadow:0 0 18px #f0cf7a40}
+.rock-cluster{z-index:4}
+.tile.fog .road-net,.tile.night-fog .road-net{opacity:.08}
+.tile.fog .marker,.tile.night-fog .marker{opacity:0}
+.map-wrap{background:
+ radial-gradient(circle at 20% 20%,#30412f 0,transparent 30%),
+ radial-gradient(circle at 80% 85%,#273827 0,transparent 28%),
+ linear-gradient(180deg,#161d17,#0d120f);border-color:#5e5a43}
+.map-wrap .edge-deco{display:none}
+.poi-preview{min-height:160px;border:1px solid #3d493f;border-radius:14px;overflow:hidden;background:#0d120f}
+.poi-art{height:112px;position:relative;overflow:hidden;background:linear-gradient(180deg,#506653 0%,#2e3f32 52%,#19231d 100%)}
+.poi-art:after{content:"";position:absolute;left:0;right:0;bottom:0;height:35%;background:linear-gradient(180deg,#26372a,#17211a)}
+.poi-art .moon{position:absolute;right:18px;top:12px;width:26px;height:26px;border-radius:50%;background:#e0d6a4;box-shadow:0 0 18px #f1dda855}
+.poi-art .forge-house{position:absolute;left:58px;bottom:28px;width:84px;height:52px;background:#5c4934;border:3px solid #271c13;z-index:2}.poi-art .forge-house:before{content:"";position:absolute;left:-10px;top:-28px;border-left:52px solid transparent;border-right:52px solid transparent;border-bottom:34px solid #3a2a1c}.poi-art .forge-house:after{content:"";position:absolute;right:10px;bottom:0;width:20px;height:31px;background:#271b13;box-shadow:-45px 8px 0 -4px #e89945}
+.poi-art .anvil{position:absolute;left:158px;bottom:25px;width:44px;height:12px;background:#7c817e;z-index:3;border-radius:3px}.poi-art .anvil:before{content:"";position:absolute;left:10px;top:10px;width:23px;height:18px;background:#525754}.poi-art .anvil:after{content:"";position:absolute;right:-14px;top:1px;border-left:16px solid #7c817e;border-top:5px solid transparent;border-bottom:5px solid transparent}
+.poi-art .campfire{position:absolute;left:50%;bottom:25px;transform:translateX(-50%);z-index:3;width:32px;height:34px;background:radial-gradient(circle at 50% 70%,#ffdd6c 0 14%,#f28d38 30%,#9e3424 56%,transparent 58%);filter:drop-shadow(0 0 9px #ff9c3a88)}
+.poi-art .tent{position:absolute;left:68px;bottom:25px;z-index:2;border-left:32px solid transparent;border-right:32px solid transparent;border-bottom:52px solid #574936;filter:drop-shadow(0 5px 4px #0007)}
+.poi-art .altar{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:86px;height:12px;background:#5c645d;z-index:3;box-shadow:0 -10px 0 -2px #4b554e,0 -22px 0 -4px #3d4741}.poi-art .altar:before{content:"";position:absolute;left:36px;bottom:14px;width:14px;height:44px;background:#68736b;box-shadow:0 0 16px #86d79b44}
+.poi-art .chest-art{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:62px;height:38px;border-radius:8px 8px 5px 5px;background:#7a5730;border:3px solid #332112;z-index:3}.poi-art .chest-art:before{content:"";position:absolute;left:-3px;right:-3px;top:-17px;height:20px;border-radius:22px 22px 4px 4px;background:#8a673a;border:3px solid #332112}.poi-art .chest-art:after{content:"";position:absolute;left:26px;top:10px;width:9px;height:12px;background:#c6a04c}
+.poi-art .boss-gate{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:95px;height:68px;border:9px solid #4f3734;border-bottom-width:14px;border-radius:50px 50px 4px 4px;z-index:3;box-shadow:inset 0 0 22px #8f262655,0 0 18px #0008}.poi-art .boss-gate:before{content:"";position:absolute;left:24px;right:24px;top:14px;bottom:0;background:#170d0d;box-shadow:inset 0 0 16px #b02b2b44}
+.poi-info{padding:10px 12px}.poi-info strong{display:block;color:#e8d6aa;font-size:14px}.poi-info span{display:block;color:#9ca89f;font-size:11px;line-height:1.45;margin-top:3px}
+.poi-distance{display:inline-block!important;margin-top:7px!important;padding:3px 7px;border:1px solid #4a584d;border-radius:999px;color:#c8d1c5!important}
+@media(max-width:900px){.map{padding:5px}.road-net .h{height:24%;top:38%}.road-net .v{width:24%;left:38%}.tile .marker{width:24px;height:24px;margin-top:4px}.poi-preview{min-height:140px}.poi-art{height:92px}}
+
+
+/* v0.8.1 cleanup: remove noisy per-tile decorations */
+.tile .terrain-bit,.tile .deco{display:none!important}
+.tile.empty .ground:before{background:linear-gradient(180deg,#304032 0%,#26352b 58%,#1d2922 100%)!important}
+.tile.road-tile .ground:before{background:linear-gradient(180deg,#314133 0%,#27372d 58%,#1e2a23 100%)!important}
+
+
+/* v0.8.2 multi-enemy battle */
+.enemy-group{position:absolute;right:5%;bottom:58px;display:flex;align-items:flex-end;justify-content:flex-end;gap:16px;max-width:52%;z-index:2}
+.enemy-card{width:112px;text-align:center;transition:.18s transform,.18s filter,.18s opacity}
+.enemy-card .battle-unit{font-size:64px}
+.enemy-card .battle-hp{width:100px}
+.enemy-card .battle-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.enemy-card .battle-status{font-size:10px}
+.enemy-card.hit .battle-unit{animation:unitHit .25s ease-out}
+.enemy-card.dead{opacity:.32;filter:grayscale(1)}
+.enemy-card.dead .battle-unit{transform:rotate(14deg) translateY(8px)}
+
+.enemy-card .battle-unit.sprite{display:block;width:126px;height:126px;object-fit:contain;margin:-10px auto 2px;filter:drop-shadow(0 10px 14px #000b)}
+.enemy-card.dead .battle-unit.sprite{filter:grayscale(1) brightness(.8) drop-shadow(0 10px 14px #000b)}
+.poi-art .poi-creature{position:absolute;right:10px;bottom:-8px;width:154px;height:154px;object-fit:contain;z-index:4;filter:drop-shadow(0 10px 16px #000b)}
+.poi-art .tent{left:42px}
+.poi-art .campfire{left:40%;bottom:22px}
+@media(max-width:760px){.enemy-card .battle-unit.sprite{width:92px;height:92px;margin:-4px auto 2px}.poi-art .poi-creature{width:112px;height:112px;right:0;bottom:-2px}}
+
+.enemy-card.targeted{transform:translateY(-5px);filter:brightness(1.22)}
+@media(max-width:760px){.enemy-group{right:2%;gap:7px;max-width:58%}.enemy-card{width:78px}.enemy-card .battle-unit{font-size:46px}.enemy-card .battle-hp{width:72px}.enemy-card .battle-name{font-size:10px}}
+
+
+/* v0.9 canvas world renderer */
+.canvas-wrap{display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:16px;background:radial-gradient(circle at 50% 38%,#263327 0%,#151d17 58%,#0d120f 100%);border-color:#665b45}
+#worldCanvas{display:block;width:min(100%,936px);height:auto;aspect-ratio:1;border-radius:20px;touch-action:manipulation;cursor:pointer;box-shadow:0 20px 50px #0009,inset 0 0 0 1px #ffffff12;background:#1b261d}
+.canvas-hint{position:absolute;right:24px;bottom:18px;padding:6px 9px;border-radius:999px;background:#0a0f0ccc;border:1px solid #4f5a4e;color:#9fa99f;font-size:10px;pointer-events:none;letter-spacing:.04em}
+.map{display:none!important}
+@media(max-width:900px){.canvas-wrap{padding:7px}.canvas-hint{right:12px;bottom:10px;font-size:9px}}
+
+
+/* v0.11 UI redesign - inventory / forge / battle */
+.modal-card{width:min(1180px,96vw);background:linear-gradient(180deg,#151a17,#0b0f0d);border-color:#60553f;box-shadow:0 28px 90px #000c,inset 0 1px 0 #ffffff08}
+.modal-head-rich{padding:18px 22px;background:linear-gradient(180deg,#1b211d,#121713);border-bottom-color:#413d31}
+.modal-head-rich h2{font-size:24px;letter-spacing:.06em}
+.modal-kicker{font-size:11px;letter-spacing:.22em;color:#a59a82;margin-bottom:6px}
+.modal-battle .battle-shell{padding:18px}
+.modal-battle .battle-stage{height:430px;border-radius:22px;border-color:#4f5546;background:radial-gradient(circle at 50% 35%,#3f5445 0,#273329 38%,#101613 78%,#080b0a 100%);box-shadow:inset 0 -80px 110px #0008,inset 0 0 0 1px #ffffff08}
+.modal-battle .battle-stage:after{content:"";position:absolute;left:0;right:0;bottom:0;height:130px;background:linear-gradient(180deg,transparent,#19211c 56%,#121713 100%)}
+.modal-battle .battle-banner{top:18px;background:#0a0f0ccc;border-color:#68614f;color:#e6dcc4;padding:9px 18px;font-weight:700}
+.modal-battle .battle-skill{top:74px}
+.modal-battle .battle-side.player-side{left:5%}
+.enemy-group{position:absolute;right:5%;bottom:66px;display:flex;gap:18px;align-items:flex-end;z-index:2}
+.enemy-card{width:158px;padding:12px 10px;border-radius:18px;border:1px solid #544737;background:linear-gradient(180deg,#241915d9,#120d0bd9);box-shadow:0 16px 30px #0007;text-align:center;transition:.2s transform,.2s opacity,.2s filter}
+.enemy-card.targeted{transform:translateY(-4px) scale(1.02);box-shadow:0 0 0 1px #d6a15a,0 14px 28px #0008}
+.enemy-card.dead{opacity:.35;filter:grayscale(.9)}
+.enemy-card .battle-unit{font-size:74px}
+.enemy-card .battle-name{font-size:14px;letter-spacing:.03em}
+.enemy-card .battle-status{margin-top:5px;min-height:16px}
+.modal-battle .battle-info{grid-template-columns:1fr 1fr;margin-top:14px}
+.modal-battle .battle-build,.modal-battle .battle-logbox{padding:14px;border-radius:16px;background:linear-gradient(180deg,#121713,#0d110e);border-color:#393f35}
+.modal-battle #battleWeaponLine{font-size:14px;line-height:1.6;color:#dbd1bd}
+.modal-battle .support-chip{background:#1b221d;border-color:#62553e;color:#d8d0c0}
+.modal-battle .battle-logbox{min-height:96px}
+.inventory-body-rich{grid-template-columns:360px 300px minmax(0,1fr);padding:18px;gap:16px}
+.equipped-pane,.build-pane,.bag-pane{border:1px solid #404438;border-radius:18px;background:linear-gradient(180deg,#121713,#0d110d);padding:16px;box-shadow:inset 0 1px 0 #ffffff08}
+.pane-kicker{font-size:11px;letter-spacing:.18em;color:#9f9884;margin-bottom:10px;text-transform:uppercase}
+.pane-kicker.mini-gap{margin-top:14px}
+.modal-bag .weapon-card{background:linear-gradient(180deg,#231b14,#12100d);border-color:#7b6642;border-radius:18px;box-shadow:0 16px 28px #0005}
+.big-weapon{font-size:24px;font-weight:900;letter-spacing:.03em}
+.socket-row{display:grid;gap:10px;margin:14px 0}
+.socket-slot{position:relative;min-height:56px;display:flex;align-items:center;gap:8px;padding:11px 12px 11px 44px;border:1px solid #4c4436;border-radius:14px;background:linear-gradient(180deg,#1c1712,#100d0a);font-size:13px;color:#d9d0c1}
+.socket-slot:before{content:"";position:absolute;left:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:2px solid #8d7a57;background:#0b0d0b;box-shadow:inset 0 0 0 3px #1c201d}
+.socket-slot.filled:before{background:radial-gradient(circle at 35% 30%,#95a7d8,#516490);border-color:#a9bbeb}
+.socket-slot button{margin-left:auto;background:#2a2319;border:1px solid #6a5a44;border-radius:999px;width:24px;height:24px;color:#e8dec8;cursor:pointer}
+.build-panel-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.build-stat-card{padding:11px 12px;border:1px solid #3d443a;border-radius:14px;background:linear-gradient(180deg,#161b17,#101411)}
+.build-stat-card strong{display:block;font-size:20px;color:#f0e3c4}
+.build-stat-card span{font-size:11px;color:#98a195}
+.effect-strip{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.effect-chip{padding:6px 9px;border-radius:999px;border:1px solid #5a513f;background:#1a1712;font-size:11px;color:#d8ccb0}
+.bag-skill-list{display:flex;flex-direction:column;gap:8px}
+.bag-skill-entry{padding:9px 10px;border:1px solid #41463c;border-radius:12px;background:linear-gradient(180deg,#151915,#0f1310);display:flex;gap:8px;align-items:flex-start}
+.bag-skill-entry .ico{font-size:16px;width:20px}.bag-skill-entry b{display:block;font-size:12px}.bag-skill-entry span{display:block;font-size:10px;color:#98a196}.bag-skill-entry .lv{margin-left:auto;font-size:11px;color:#d4b56f;white-space:nowrap}
+.bag-headline{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.bag-headline h3{margin:0;font-size:15px}.bag-count{font-size:11px;color:#a7ae9d;padding:4px 8px;border:1px solid #454c42;border-radius:999px;background:#131713}
+.item-group{margin-top:12px}.item-group:first-child{margin-top:0}.item-group h4{margin:0 0 8px;font-size:11px;letter-spacing:.16em;color:#97917c;text-transform:uppercase}
+.bag-list{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto;padding-right:2px}.bag-card{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid #41463c;border-radius:14px;background:linear-gradient(180deg,#161b17,#0e120f)}
+.bag-card .ico{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;border:1px solid #5c503f;background:linear-gradient(180deg,#2a2118,#17120d);font-size:20px}
+.bag-card strong{display:block;margin-bottom:4px}.bag-card small{display:block;color:#97a095;line-height:1.45}
+.bag-card button{background:linear-gradient(180deg,#6b5337,#443225);border:1px solid #a57d49;border-radius:10px;padding:8px 12px;color:#f3e2be}.bag-card button:disabled{background:linear-gradient(180deg,#3b3d39,#282b28);border-color:#575e59;color:#8f9692}
+.menu-hint{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid #403e35;background:linear-gradient(180deg,#181410,#100d0b);font-size:12px;color:#b4a992;line-height:1.55}
+.modal-smith{width:min(1120px,96vw)}
+.smith-layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;padding:18px}
+.smith-scene-panel,.smith-offers{border:1px solid #41382d;border-radius:18px;background:linear-gradient(180deg,#15120e,#0e0b09);padding:16px}
+.smith-scene{position:relative;height:220px;border-radius:18px;border:1px solid #5a4832;background:radial-gradient(circle at 50% 30%,#392516 0,#1b130f 48%,#0e0b09 100%);overflow:hidden;box-shadow:inset 0 -70px 100px #0008}
+.forge-body{position:absolute;left:42px;bottom:34px;width:170px;height:88px;border-radius:28px 28px 16px 16px;background:linear-gradient(180deg,#4f3824,#261a12);border:1px solid #89633b}
+.forge-flame{position:absolute;left:102px;bottom:82px;width:56px;height:82px;border-radius:40px 40px 12px 12px;background:radial-gradient(circle at 50% 72%,#ffd671 0,#ffb544 34%,#e55c1d 62%,rgba(229,92,29,0) 72%);filter:blur(.4px);box-shadow:0 0 28px #ff9b3c}
+.anvil-body{position:absolute;right:74px;bottom:42px;width:92px;height:56px;border-radius:8px 8px 20px 20px;background:linear-gradient(180deg,#7f827c,#434640);border:1px solid #2f322d}
+.smith-smoke{position:absolute;left:88px;top:26px;width:120px;height:80px;background:radial-gradient(circle at 20% 50%,rgba(180,180,180,.13),transparent 30%),radial-gradient(circle at 50% 30%,rgba(180,180,180,.12),transparent 28%),radial-gradient(circle at 72% 56%,rgba(180,180,180,.10),transparent 26%)}
+.smith-gold-line{margin-top:12px;padding:8px 10px;border-radius:12px;border:1px solid #5d4933;background:#1d1712;color:#f0d8a4;font-weight:700}
+.smith-offers .choice-grid{grid-template-columns:1fr}.smith-offers .choice-card{min-height:0;padding:16px;border-radius:18px;background:linear-gradient(180deg,#1a1511,#100d0b);border-color:#5b4a37}.smith-offers .choice-card .head .ico{background:linear-gradient(180deg,#4b341f,#22160d);border-color:#a07849}
+.smith-offers .choice-card p{font-size:13px;line-height:1.6}
+.smith-offers .choice-card button{padding:10px 14px;font-weight:700}
+.choice-card .reward-kind{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #5b5443;background:#141814;font-size:10px;letter-spacing:.12em;color:#aaa28b;text-transform:uppercase}
+.choice-card.kind-skill{border-color:#5b5548;background:linear-gradient(180deg,#1b1b17,#10120f)}
+.choice-card.kind-support{border-color:#45516d;background:linear-gradient(180deg,#171c24,#0e1218)}
+.choice-card.kind-support .head .ico{background:linear-gradient(180deg,#253048,#131821);border-color:#7189bc}
+.choice-card.kind-gold,.choice-card.kind-heal{border-color:#68523a;background:linear-gradient(180deg,#241b14,#120f0c)}
+.choice-card.kind-gold .head .ico,.choice-card.kind-heal .head .ico{background:linear-gradient(180deg,#48341e,#1f1710);border-color:#a27a48}
+@media(max-width:1100px){.inventory-body-rich{grid-template-columns:1fr}.smith-layout{grid-template-columns:1fr}.modal-battle .battle-info{grid-template-columns:1fr}.enemy-group{right:3%;gap:10px}.enemy-card{width:136px}}
+
+
+/* v0.12 immediately-visible main screen redesign */
+body{background:#090c0a}
+.app-v12{grid-template-columns:minmax(0,1fr) 330px;gap:0;padding:0;max-width:none;min-height:100vh;background:#090c0a}
+.main-v12,.side-v12{border-radius:0;border:0;box-shadow:none}
+.main-v12{padding:0;gap:0;background:#0b0f0c}
+.game-hud{height:88px;display:grid;grid-template-columns:250px 1fr 250px;align-items:center;gap:24px;padding:14px 22px;background:linear-gradient(180deg,#171b16,#0f130f);border-bottom:1px solid #4c4638;box-shadow:0 12px 30px #0008;z-index:5}
+.brand-block .eyebrow,.side-kicker{font-size:9px;letter-spacing:.28em;color:#9d8f73}.brand-block h1{margin:2px 0 0;font-size:24px;letter-spacing:.22em;color:#eee4cb}.brand-block small{color:#888f82;font-size:11px}
+.hud-center{display:flex;align-items:center;justify-content:center;gap:14px}.hp-wrap{min-width:220px}.hp-wrap>span{display:block;font-size:9px;letter-spacing:.18em;color:#938f80;margin-bottom:5px}.hp-track{height:22px;position:relative;background:#15100e;border:1px solid #5f493f;border-radius:999px;overflow:hidden}.hp-track i{position:absolute;left:0;top:0;bottom:0;width:70%;background:linear-gradient(90deg,#7e2b26,#b54c40)}.hp-track b{position:relative;z-index:2;display:block;text-align:center;line-height:20px;font-size:11px;color:#f4dfd7}
+.daycycle-v12{padding:9px 12px;border-color:#5c5748;background:#171b16}.boss-pill{min-width:205px;padding:7px 11px;border:1px solid #5d3c35;border-radius:13px;background:linear-gradient(180deg,#21120f,#130d0b)}.boss-pill>span{font-size:9px;letter-spacing:.13em;color:#aa7a70}.boss-pill>b{float:right;font-size:11px;color:#e5a18e}.boss-track{clear:both;margin-top:6px;height:4px;border-radius:99px;background:#241714;overflow:hidden}.boss-track i{display:block;height:100%;background:linear-gradient(90deg,#6f2a24,#d86a4d)}
+.hud-actions{display:flex;justify-content:flex-end;gap:8px}.hud-actions button{padding:10px 12px;border-radius:10px;border:1px solid #5b5546;background:linear-gradient(180deg,#282a22,#171a16);font-size:11px;color:#e2d8c0;cursor:pointer}
+.world-shell{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(circle at 50% 35%,#243020,#11170f 62%,#080b08)}
+.map-frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px 80px 78px 24px}.map-frame canvas{width:min(100%,960px);height:auto;max-height:100%;border-radius:24px;border:1px solid #5e543e;box-shadow:0 30px 70px #000a,inset 0 0 0 1px #ffffff08;background:#1b2718}
+.world-overlay{position:absolute;z-index:4}.left-overlay{left:22px;top:24px;width:245px;padding:12px;border-radius:16px;border:1px solid #514a3b;background:linear-gradient(180deg,#101510ed,#0b0f0ced);backdrop-filter:blur(8px);box-shadow:0 18px 30px #0007}.mini-title{font-size:9px;letter-spacing:.18em;color:#98917f;margin-bottom:8px}.left-overlay .weapon-card{padding:10px;border-radius:12px;background:#17130f;border-color:#65543a}.left-overlay .weapon-title strong{font-size:14px}.left-overlay .tags{margin:6px 0}.left-overlay .tag{font-size:8px}.left-overlay .socket{width:30px;height:30px}.left-overlay .weapon-card>div:last-child{font-size:10px!important}
+.bottom-overlay{left:22px;right:22px;bottom:18px;display:flex;align-items:center;gap:12px}.message-v12{flex:1;min-height:42px;padding:11px 14px;border-color:#49483c;background:#0b0f0de8;backdrop-filter:blur(8px);font-size:12px}.controls-v12{gap:5px}.controls-v12 button{width:40px;height:40px;padding:0;border-radius:11px;background:#171b16;border-color:#555043}
+.side-v12{padding:16px;background:linear-gradient(180deg,#121611,#0a0e0b);border-left:1px solid #4b4639;overflow:auto}
+.side-hero{padding:16px;border:1px solid #583a33;border-radius:18px;background:radial-gradient(circle at 75% 0,#382019,#17100e 45%,#100d0b 100%);box-shadow:inset 0 1px 0 #ffffff09}.side-hero h2{margin:5px 0 4px;font-size:22px;color:#eadac7}.side-hero p{margin:0;color:#b18e82;font-size:12px}.weakness{margin-top:14px;padding-top:12px;border-top:1px solid #553d35;display:flex;justify-content:space-between;font-size:11px}.weakness span{color:#8f8176}.weakness b{color:#e5b66e}
+.section-v12{background:linear-gradient(180deg,#121713,#0c100d);border-color:#3f4238}.section-v12 h3{color:#a7a08b;font-size:10px}.section-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.section-title-row h3{margin:0}.gold-pill{font-size:11px;color:#d7b46c;padding:4px 7px;border:1px solid #584a31;border-radius:999px;background:#1a150f}.poi-section{padding:10px}.poi-section .poi-preview{min-height:170px}.inv-compact .inv-item:nth-child(n+3){display:none}.legend-v12{margin-top:auto;border-color:#383a32;background:#0d100e;font-size:10px;line-height:1.7}.legend-v12 b{letter-spacing:.15em;color:#a8a18e}
+@media(max-width:1050px){.app-v12{grid-template-columns:1fr}.side-v12{display:none}.game-hud{grid-template-columns:1fr auto}.hud-center{display:none}.map-frame{padding-right:24px}.hud-actions{grid-column:2}}
+
+
+/* v0.13 unified dark-fantasy UI icon system */
+.ui-icon{display:inline-flex;align-items:center;justify-content:center;width:1.2em;height:1.2em;vertical-align:-.18em;flex:0 0 auto}.ui-icon svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.icon-btn{display:inline-flex!important;align-items:center;gap:7px}.modal-head h2{display:flex;align-items:center;gap:9px}.hud-chip{display:inline-flex;align-items:center;gap:7px}.reward-kind{gap:5px}.reward-kind .ui-icon{width:13px;height:13px}.smith-gold-line,.gold-pill{display:flex;align-items:center;gap:6px}.legend-v12{display:none}
+
+</style></head><body><div class="app app-v12">
+<section class="main panel main-v12">
+ <div class="game-hud">
+   <div class="brand-block"><div class="eyebrow">DARK EXPEDITION</div><h1>GRIMPATH</h1><small>荒暮森林 · 逐格遠征</small></div>
+   <div class="hud-center">
+      <div class="hp-wrap"><span>生命</span><div class="hp-track"><i id="hpFill"></i><b id="hpTop"></b></div></div>
+      <div id="dayCycle" class="daycycle daycycle-v12">☀ 白天</div>
+      <div class="boss-pill"><span>守門者甦醒</span><b id="turnText"></b><div class="boss-track"><i id="threatFill"></i></div></div>
+   </div>
+   <div class="hud-actions"><button id="openBag">背包 / BUILD</button><button id="restart">新世界</button></div>
+ </div>
+ <div class="world-shell">
+   <div class="map-frame"><canvas id="worldCanvas" width="936" height="936" aria-label="GRIMPATH world map"></canvas><div id="canvasHint" class="canvas-hint">點擊相鄰位置移動</div></div>
+   <div class="world-overlay left-overlay"><div class="mini-title">目前武器</div><div id="weapon"></div></div>
+   <div class="world-overlay bottom-overlay"><div id="message" class="message message-v12"></div><div class="controls controls-v12"><button data-move="0,-1">↑</button><button data-move="-1,0">←</button><button data-move="0,1">↓</button><button data-move="1,0">→</button></div></div>
+ </div>
+</section>
+<aside class="side panel side-v12">
+ <section class="side-hero"><div class="side-kicker">NEXT THREAT</div><h2>腐化守林者</h2><p>高護甲 · 召喚荊棘</p><div class="weakness"><span>弱點</span><b>火焰 / 穿透</b></div></section>
+ <section class="section section-v12"><div class="section-title-row"><h3>旅者狀態</h3><span class="gold-pill">● <b id="gold"></b></span></div><div class="stats"><div class="stat"><strong id="hp"></strong><span>生命</span></div><div class="stat"><strong id="skillCount">0</strong><span>旅者技能</span></div></div></section>
+ <section class="section section-v12 poi-section"><h3>附近地標</h3><div id="poiPreview" class="poi-preview"></div></section>
+ <section class="section section-v12"><h3>旅者技能</h3><div id="skillsPanel" class="skill-list"></div></section>
+ <section class="section section-v12"><h3>最近戰鬥</h3><div id="combatLog" class="combat-log">沿道路探索，接觸敵人後進入自動戰鬥。</div></section>
+ <section class="section section-v12 inv-compact"><h3>背包預覽</h3><div id="inventory" class="inv"></div></section>
+ <div class="legend legend-v12"><b>操作</b><br>WASD / 方向鍵移動 · B 開啟 Build<br>寶箱提供三選一獎勵，技能是其中一種。</div>
+</aside></div>
+<div id="battleModal" class="modal-backdrop hidden"><div class="modal-card modal-battle"><div class="modal-head"><h2><span data-icon="sword"></span>遭遇戰</h2><span id="battleTurnLabel">AUTO BATTLE</span></div><div class="battle-shell"><div id="battleStage" class="battle-stage"><div id="battleBanner" class="battle-banner">遭遇敵人</div><div id="battleSkill" class="battle-skill"></div><div class="battle-side player-side"><div id="battlePlayerUnit" class="battle-unit">🧙</div><div class="battle-name">旅者</div><div class="battle-hp"><i id="battlePlayerHp"></i></div><div id="battlePlayerStatus" class="battle-status"></div></div><div id="battleEnemyGroup" class="enemy-group"></div><div id="battleFx" class="fx-layer"></div></div><div class="battle-info"><div class="battle-build"><h4>目前攻擊配置</h4><div id="battleWeaponLine"></div><div id="battleSupports" class="battle-supports"></div></div><div class="battle-logbox"><h4>戰鬥紀錄</h4><div id="battleLiveLog">準備戰鬥…</div></div></div><button id="battleContinue" class="continue-battle hidden">返回探索</button></div></div></div>
+<div id="bagModal" class="modal-backdrop hidden"><div class="modal-card modal-bag"><div class="modal-head modal-head-rich"><div><div class="modal-kicker">BUILD VIEW</div><h2><span data-icon="bag"></span>背包與裝備</h2></div><button id="closeBag" class="close-btn">關閉</button></div><div class="inventory-body inventory-body-rich"><section class="equipped-pane"><div class="pane-kicker">已裝備武器</div><div id="bagEquipped"></div></section><section class="build-pane"><div class="pane-kicker">Build 摘要</div><div id="bagBuildSummary"></div><div class="pane-kicker mini-gap">旅者技能</div><div id="bagSkillList" class="bag-skill-list"></div></section><section class="bag-pane"><div class="bag-headline"><h3>背包內容</h3><span id="bagCount" class="bag-count">0 件</span></div><div id="bagInventory" class="bag-list"></div><div class="menu-hint">武器可直接替換；Support 只有符合目前武器 Tag 且有空技能孔時才能插入。</div></section></div></div></div>
+<div id="skillModal" class="modal-backdrop hidden"><div class="modal-card"><div class="modal-head"><h2><span data-icon="chest"></span>寶箱獎勵</h2><span>三選一，只能拿走 1 項</span></div><div class="choice-body"><div id="skillChoices" class="choice-grid"></div></div></div></div>
+<div id="smithModal" class="modal-backdrop hidden"><div class="modal-card modal-smith"><div class="modal-head modal-head-rich"><div><div class="modal-kicker">FORGE EVENT</div><h2><span data-icon="anvil"></span>黑鐵工坊</h2></div><button id="closeSmith" class="close-btn">離開</button></div><div class="smith-layout"><section class="smith-scene-panel"><div class="smith-scene"><div class="forge-flame"></div><div class="forge-body"></div><div class="anvil-body"></div><div class="smith-smoke"></div></div><div class="smith-hero">壁爐燃燒，鐵砧迸出火花。這裡可以擴充技能孔、磨鋒武器，或直接買下一顆新的 Support。</div><div id="smithGoldLine" class="smith-gold-line"></div></section><section class="smith-offers"><div class="pane-kicker">可購買工藝</div><div id="smithChoices" class="choice-grid smith-grid"></div></section></div></div></div>
+<div id="end" class="end hidden"><div class="end-card"><h2 id="endTitle"></h2><p id="endText"></p><button id="again" class="action">再次踏入裂界</button></div></div>
+<script>
+function iconSvg(name,size=18){
+ const paths={
+  heart:'<path d="M9 16s-6-3.8-6-8.1A3.9 3.9 0 0 1 9 4.8 3.9 3.9 0 0 1 15 7.9C15 12.2 9 16 9 16Z"/>',
+  coin:'<circle cx="9" cy="9" r="6.2"/><circle cx="9" cy="9" r="2.8"/>',
+  sun:'<circle cx="9" cy="9" r="3.2"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M14.3 3.7l-1.4 1.4M5.1 12.9l-1.4 1.4"/>',
+  moon:'<path d="M13.7 12.8A6.3 6.3 0 0 1 6.2 4.3a6.4 6.4 0 1 0 7.5 8.5Z"/>',
+  boss:'<path d="M3.5 14.5 5 5.5l4 3 4-3 1.5 9Z"/><circle cx="7" cy="11" r=".7"/><circle cx="11" cy="11" r=".7"/>',
+  bag:'<path d="M4 7.5h10v8H4z"/><path d="M6 7.5 7 4.5h4l1 3M6.5 11h5"/>',
+  sword:'<path d="m4 14 9-9 2-1-1 3-9 9Z"/><path d="m6 11 3 3M3.5 14.5 5 16"/>',
+  rune:'<path d="m9 2 1.8 4.2L15 8l-4.2 1.8L9 14l-1.8-4.2L3 8l4.2-1.8Z"/><circle cx="9" cy="8" r="1.2"/>',
+  chest:'<path d="M3.5 7h11v8h-11zM3.5 7c.2-2 1.8-3 5.5-3s5.3 1 5.5 3M8 10h2v2H8z"/>',
+  anvil:'<path d="M3 5.5h10.5l1.5 2H11l-2 2H5l-2-4Z"/><path d="M7 9.5v3.5M5.5 13h3"/>',
+  shrine:'<path d="m9 2.5 5 11H4Z"/><circle cx="9" cy="9" r="1.7"/>',
+  claw:'<path d="M5 3.5 4.5 14M9 2.5 9 14M13 3.5 13.5 14"/>',
+  fire:'<path d="M10.5 2.5c.4 3-2.7 3.8-1.2 6.1.8 1.2 2.2.9 2.6-.3.7 3-1.1 6.2-4.2 6.2-3 0-5-2.1-4.7-5.1.2-2.5 1.9-4.5 3.9-6.4.1 2 1.1 2.8 1.8 3.1.2-1.6.6-3 1.4-4Z"/>',
+  support:'<path d="M4 9h10M9 4v10"/><circle cx="9" cy="9" r="5.5"/>',
+  heal:'<path d="M6 3h6v3h3v6h-3v3H6v-3H3V6h3Z"/>'
+ };
+ return `<span class="ui-icon" style="width:${size}px;height:${size}px"><svg viewBox="0 0 18 18" aria-hidden="true">${paths[name]||paths.rune}</svg></span>`;
+}
+function hydrateIcons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>{el.outerHTML=iconSvg(el.dataset.icon,Number(el.dataset.size)||18)})}
+const MAP_SIZE=13;
+const BOSS_TURN=28;
+const DAY_LENGTH=8;
+const TILE={EMPTY:'empty',ENEMY:'enemy',CHEST:'chest',WEAPON:'weapon',SUPPORT:'support',SHRINE:'shrine',BOSS:'boss',ROCK:'rock',SMITH:'smith'};
+const WEAPONS={
+ fireStaff:{id:'fireStaff',name:'火球杖',icon:'🔥',tags:['spell','fire','projectile','aoe'],baseDamage:18,rate:1.15,sockets:2,pattern:'projectile'},
+ longbow:{id:'longbow',name:'長弓',icon:'🏹',tags:['attack','projectile','physical'],baseDamage:15,rate:.85,sockets:2,pattern:'projectile'},
+ greatAxe:{id:'greatAxe',name:'巨斧',icon:'🪓',tags:['attack','melee','physical','aoe'],baseDamage:27,rate:1.45,sockets:2,pattern:'melee'},
+ stormWand:{id:'stormWand',name:'雷霆法杖',icon:'⚡',tags:['spell','lightning','projectile','chain'],baseDamage:16,rate:1.05,sockets:3,pattern:'chain'}
+};
+const SUPPORTS={
+ multi:{id:'multi',name:'多重投射',icon:'✦',requires:['projectile'],desc:'+2 投射物，單發傷害 -15%',mods:{projectiles:2,damage:.85}},
+ fireAmp:{id:'fireAmp',name:'燃燒增幅',icon:'♨',requires:['fire'],desc:'火焰傷害 +35%，可點燃',mods:{damage:1.35,ignite:.35}},
+ pierce:{id:'pierce',name:'穿透',icon:'➶',requires:['projectile'],desc:'投射物額外穿透 2 名敵人',mods:{pierce:2}},
+ chain:{id:'chain',name:'連鎖',icon:'ϟ',requires:['projectile'],desc:'命中後彈向另一名敵人',mods:{chain:1,damage:.9}},
+ rapid:{id:'rapid',name:'快速施放',icon:'»',requiresAny:['spell','attack'],desc:'攻擊間隔 -25%',mods:{rate:.75}},
+ brutal:{id:'brutal',name:'重擊',icon:'◆',requires:['melee'],desc:'近戰傷害 +45%，攻擊變慢',mods:{damage:1.45,rate:1.2}},
+ shock:{id:'shock',name:'感電',icon:'⚡',requires:['lightning'],desc:'雷電命中使後續傷害提高',mods:{shock:.22}},
+ splash:{id:'splash',name:'擴散',icon:'◎',requiresAny:['aoe','melee'],desc:'範圍傷害半徑提高',mods:{splash:1.6}}
+};
+const SKILLS={
+ volley:{id:'volley',name:'飛射訣',icon:'✦',desc:'投射物技能額外 +1 投射物。',max:2,apply:p=>p.projectiles=(p.projectiles||0)+1},
+ combustion:{id:'combustion',name:'餘燼灌注',icon:'🔥',desc:'火焰傷害提高 25%。',max:3,apply:p=>p.fireMult=(p.fireMult||1)*1.25},
+ tempo:{id:'tempo',name:'迅捷節奏',icon:'»',desc:'攻擊間隔縮短 12%。',max:3,apply:p=>p.rateMult=(p.rateMult||1)*0.88},
+ spellcraft:{id:'spellcraft',name:'法紋專精',icon:'📘',desc:'法術傷害提高 20%。',max:3,apply:p=>p.spellMult=(p.spellMult||1)*1.2},
+ brutality:{id:'brutality',name:'猛襲鍛體',icon:'🪓',desc:'近戰傷害提高 28%。',max:3,apply:p=>p.meleeMult=(p.meleeMult||1)*1.28},
+ vitality:{id:'vitality',name:'命火脈動',icon:'❤',desc:'最大生命 +15，並恢復 15 生命。',max:4,apply:(p,loadout)=>{loadout.maxHp+=15;loadout.hp=Math.min(loadout.maxHp,loadout.hp+15)}},
+ prosperity:{id:'prosperity',name:'獵金直覺',icon:'💰',desc:'擊敗敵人時額外獲得 4 金幣。',max:3,apply:p=>p.goldOnKill=(p.goldOnKill||0)+4},
+ nightwatch:{id:'nightwatch',name:'夜巡燈火',icon:'🕯',desc:'夜晚視野 +1。',max:2,apply:p=>p.nightSight=(p.nightSight||0)+1},
+ marksmanship:{id:'marksmanship',name:'精準射擊',icon:'🎯',desc:'投射物傷害提高 18%。',max:3,apply:p=>p.projectileMult=(p.projectileMult||1)*1.18}
+};
+
+const ENEMIES={
+ wolf:{id:'wolf',name:'灰狼',icon:'🐺',art:'data:image/webp;base64,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',hp:38,damage:7,rate:1.0,count:[1,2]},
+ cultist:{id:'cultist',name:'灰燼信徒',icon:'🧙',hp:48,damage:9,rate:1.25,count:[1,2]},
+ brute:{id:'brute',name:'骨甲巨漢',icon:'🗿',hp:92,damage:14,rate:1.55,count:[1,1]},
+ boss:{id:'boss',name:'裂界守門者',icon:'👹',hp:330,damage:18,rate:1.15,count:[1,1]}
+};
+
+function supportFits(weapon,support){
+ const tags=new Set(weapon.tags);
+ if(support.requires&&!support.requires.every(t=>tags.has(t)))return false;
+ if(support.requiresAny&&!support.requiresAny.some(t=>tags.has(t)))return false;
+ return true;
+}
+function getSocketCapacity(loadout){return loadout.weapon.sockets + ((loadout.passives&&loadout.passives.socketBonus)||0)}
+function compileBuild(weapon,supportIds=[],passives={}){
+ const out={damage:weapon.baseDamage,rate:weapon.rate,projectiles:1,pierce:0,chain:0,ignite:0,shock:0,splash:1,tags:[...weapon.tags]};
+ for(const id of supportIds){const s=SUPPORTS[id];if(!s||!supportFits(weapon,s))continue;const m=s.mods||{};
+  if(m.damage)out.damage*=m.damage;if(m.rate)out.rate*=m.rate;if(m.projectiles)out.projectiles+=m.projectiles;
+  if(m.pierce)out.pierce+=m.pierce;if(m.chain)out.chain+=m.chain;if(m.ignite)out.ignite+=m.ignite;if(m.shock)out.shock+=m.shock;if(m.splash)out.splash*=m.splash;}
+ if(passives.damageMult)out.damage*=passives.damageMult;
+ if(passives.rateMult)out.rate*=passives.rateMult;
+ if(passives.projectiles&&weapon.tags.includes('projectile'))out.projectiles+=passives.projectiles;
+ if(passives.fireMult&&weapon.tags.includes('fire'))out.damage*=passives.fireMult;
+ if(passives.spellMult&&weapon.tags.includes('spell'))out.damage*=passives.spellMult;
+ if(passives.meleeMult&&weapon.tags.includes('melee'))out.damage*=passives.meleeMult;
+ if(passives.projectileMult&&weapon.tags.includes('projectile'))out.damage*=passives.projectileMult;
+ return out;
+}
+function socketSupport(loadout,supportId){
+ const s=SUPPORTS[supportId];if(!s)return {ok:false,reason:'unknown'};
+ if(!supportFits(loadout.weapon,s))return {ok:false,reason:'incompatible'};
+ if(loadout.supports.includes(supportId))return {ok:false,reason:'duplicate'};
+ if(loadout.supports.length>=getSocketCapacity(loadout))return {ok:false,reason:'full'};
+ loadout.supports.push(supportId);return {ok:true};
+}
+
+function seeded(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function revealAround(tiles,x,y){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const t=tiles[y+dy]?.[x+dx];if(t)t.revealed=true}}
+function isConnectedWithoutRocks(tiles,c){
+ const seen=new Set([`${c},${c}`]),q=[[c,c]];
+ while(q.length){const [x,y]=q.shift();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,t=tiles[ny]?.[nx],k=`${nx},${ny}`;if(t&&t.type!==TILE.ROCK&&!seen.has(k)){seen.add(k);q.push([nx,ny])}}}
+ for(const row of tiles)for(const t of row)if(t.type!==TILE.ROCK&&!seen.has(`${t.x},${t.y}`))return false;return true;
+}
+function carveRoad(worldTiles,a,b,rng){
+ let x=a.x,y=a.y; const horizontalFirst=rng()>.5;
+ const stepX=()=>{while(x!==b.x){worldTiles[y][x].road=true;x+=Math.sign(b.x-x);worldTiles[y][x].road=true}};
+ const stepY=()=>{while(y!==b.y){worldTiles[y][x].road=true;y+=Math.sign(b.y-y);worldTiles[y][x].road=true}};
+ if(horizontalFirst){stepX();stepY()}else{stepY();stepX()}
+}
+function createWorld(seed=1){
+ const rng=seeded(seed),tiles=[];for(let y=0;y<MAP_SIZE;y++){const row=[];for(let x=0;x<MAP_SIZE;x++)row.push({x,y,type:TILE.EMPTY,revealed:false,cleared:false});tiles.push(row)}
+ const c=Math.floor(MAP_SIZE/2);tiles[c][c].revealed=true;
+ const spots=[];for(let y=1;y<MAP_SIZE-1;y++)for(let x=1;x<MAP_SIZE-1;x++)if(Math.abs(x-c)+Math.abs(y-c)>2)spots.push([x,y]);
+ for(let i=spots.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[spots[i],spots[j]]=[spots[j],spots[i]]}
+ const put=(type,n)=>{for(let i=0;i<n&&spots.length;i++){const [x,y]=spots.pop();tiles[y][x].type=type}};
+ put(TILE.ENEMY,18);put(TILE.CHEST,5);put(TILE.WEAPON,4);put(TILE.SUPPORT,7);put(TILE.SHRINE,3);put(TILE.SMITH,2);
+ const [bx,by]=spots.pop();tiles[by][bx].type=TILE.BOSS;tiles[by][bx].bossDormant=true;
+ const roadNodes=[];for(const row of tiles)for(const t of row)if([TILE.BOSS,TILE.SMITH,TILE.SHRINE,TILE.CHEST,TILE.WEAPON,TILE.SUPPORT,TILE.ENEMY].includes(t.type))roadNodes.push({x:t.x,y:t.y,type:t.type});
+ const hub={x:c,y:c};roadNodes.sort((a,b)=>(Math.abs(a.x-c)+Math.abs(a.y-c))-(Math.abs(b.x-c)+Math.abs(b.y-c)));
+ const primary=roadNodes.filter(n=>[TILE.BOSS,TILE.SMITH,TILE.SHRINE,TILE.CHEST].includes(n.type));
+ primary.forEach(n=>carveRoad(tiles,hub,n,rng));
+ roadNodes.filter(n=>!primary.includes(n)).forEach((n,i)=>{const anchor=primary.length?primary[i%primary.length]:hub;carveRoad(tiles,anchor,n,rng)});
+ let rocks=0;
+ for(const [x,y] of spots){if(rocks>=18)break;if(rng()>.58)continue;if(Math.abs(x-c)+Math.abs(y-c)<3)continue;const t=tiles[y][x];if(t.road)continue;t.type=TILE.ROCK;if(isConnectedWithoutRocks(tiles,c))rocks++;else t.type=TILE.EMPTY}
+ revealAround(tiles,c,c);return{seed,tiles,boss:{x:bx,y:by},size:MAP_SIZE};
+}
+
+function simulateCombat(loadout,enemyDef,rng=Math.random){
+ const build=compileBuild(loadout.weapon,loadout.supports,loadout.passives||{}),enemies=[];const n=enemyDef.count[0]+Math.floor(rng()*(enemyDef.count[1]-enemyDef.count[0]+1));
+ for(let i=0;i<n;i++)enemies.push({hp:enemyDef.hp,maxHp:enemyDef.hp,shock:0,burn:0});
+ let playerHp=loadout.hp,clock=0,nextPlayer=0,nextEnemy=enemyDef.rate,log=[],casts=0;
+ while(playerHp>0&&enemies.some(e=>e.hp>0)&&clock<45){clock+=.05;
+  for(const e of enemies){if(e.hp>0&&e.burn>0){e.hp-=build.damage*.10*.05;e.burn-=.05}}
+  if(clock>=nextPlayer){casts++;nextPlayer=clock+build.rate;log.push({t:clock,type:'cast',projectiles:build.projectiles,pattern:loadout.weapon.pattern,weaponId:loadout.weapon.id});const alive0=enemies.filter(e=>e.hp>0);for(let s=0;s<build.projectiles;s++){let target=alive0[s%Math.max(1,alive0.length)]||null;let hops=1+build.chain,pierce=build.pierce;
+    while(target&&hops-->0){const dmg=build.damage*(target.shock>0?1+build.shock:1);target.hp-=dmg;if(build.ignite>0&&rng()<build.ignite)target.burn=2.5;if(build.shock>0)target.shock=2.2;log.push({t:clock,type:'hit',damage:Math.round(dmg),target:enemies.indexOf(target)});
+      const alive=enemies.filter(e=>e.hp>0&&e!==target);if(pierce>0){pierce--;target=alive[0]||null}else if(hops>0)target=alive[0]||null;else target=null;}}}
+  if(clock>=nextEnemy){nextEnemy=clock+enemyDef.rate;const alive=enemies.filter(e=>e.hp>0).length;if(alive){const dmg=enemyDef.damage*Math.min(3,alive);playerHp-=dmg;log.push({t:clock,type:'hurt',damage:dmg})}}
+  for(const e of enemies)if(e.shock>0)e.shock-=.05;
+ }
+ return{won:enemies.every(e=>e.hp<=0),playerHp:Math.max(0,playerHp),seconds:clock,casts,build,log,enemies};
+}
+
+class Game{
+ constructor(seed=Date.now()>>>0){this.reset(seed)}
+ reset(seed){
+  this.seed=seed;this.rng=seeded(seed^99173);this.world=createWorld(seed);this.pos={x:6,y:6};this.turn=0;this.gold=0;this.dead=false;this.won=false;
+  this.loadout={weapon:{...WEAPONS.fireStaff},supports:[],hp:100,maxHp:100,passives:{damageMult:1,rateMult:1,projectiles:0,fireMult:1,spellMult:1,meleeMult:1,projectileMult:1,nightSight:0,goldOnKill:0,socketBonus:0},skills:{}};
+  this.inventory=[];this.lastCombat=null;this.pendingSkillChoices=[];this.pendingChestChoices=[];this.pendingSmith=false;this.message='探索裂界，準備迎戰即將甦醒的守門者。';
+ }
+ tile(){return this.world.tiles[this.pos.y][this.pos.x]}
+ isNight(){return Math.floor(this.turn/DAY_LENGTH)%2===1}
+ visionRadius(){return this.isNight()?1+(this.loadout.passives.nightSight||0):99}
+ move(dx,dy){if(this.dead||this.won)return false;const nx=this.pos.x+dx,ny=this.pos.y+dy;if(nx<0||ny<0||nx>=this.world.size||ny>=this.world.size)return false;const target=this.world.tiles[ny][nx];if(target.type===TILE.ROCK){this.message='巨石擋住去路。';return false}this.pos={x:nx,y:ny};this.turn++;revealAround(this.world.tiles,nx,ny);this.resolveTile(this.tile());return true}
+ offerSkills(){
+  const pool=Object.values(SKILLS).filter(s=>(this.loadout.skills[s.id]||0)<s.max);
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(this.rng()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  return pool.slice(0,3);
+ }
+ applySkill(skillId){
+  const skill=SKILLS[skillId];if(!skill)return false;const rank=this.loadout.skills[skillId]||0;if(rank>=skill.max)return false;
+  this.loadout.skills[skillId]=rank+1;skill.apply(this.loadout.passives,this.loadout);this.pendingSkillChoices=[];this.message=`領悟技能：${skill.name}`;return true;
+ }
+ offerChestRewards(){
+  const rewards=[];
+  const skills=this.offerSkills();
+  if(skills.length){const s=skills[Math.floor(this.rng()*skills.length)];rewards.push({kind:'skill',id:s.id,name:s.name,icon:s.icon,desc:s.desc,meta:`旅者技能 · Lv.${(this.loadout.skills[s.id]||0)+1}`})}
+  const supports=Object.values(SUPPORTS);const sup=supports[Math.floor(this.rng()*supports.length)];
+  rewards.push({kind:'support',id:sup.id,name:sup.name,icon:sup.icon,desc:sup.desc,meta:'Support'});
+  const utility=this.rng()<.5
+   ? {kind:'gold',name:'旅商錢袋',icon:'●',desc:'立即獲得 18～28 金幣。',meta:'資源'}
+   : {kind:'heal',name:'赤紅藥劑',icon:'◆',desc:'恢復 35 生命；若生命已滿，改為最大生命 +8。',meta:'補給'};
+  rewards.push(utility);
+  for(let i=rewards.length-1;i>0;i--){const j=Math.floor(this.rng()*(i+1));[rewards[i],rewards[j]]=[rewards[j],rewards[i]]}
+  return rewards.slice(0,3);
+ }
+ applyChestReward(reward){
+  if(!reward)return false;
+  if(reward.kind==='skill'){this.applySkill(reward.id)}
+  else if(reward.kind==='support'){const s=SUPPORTS[reward.id];this.inventory.push({kind:'support',item:s});this.message=`從寶箱取得 Support：${s.name}`}
+  else if(reward.kind==='gold'){const amount=18+Math.floor(this.rng()*11);this.gold+=amount;this.message=`從寶箱取得 ${amount} 金幣。`}
+  else if(reward.kind==='heal'){if(this.loadout.hp>=this.loadout.maxHp){this.loadout.maxHp+=8;this.loadout.hp=this.loadout.maxHp;this.message='藥劑強化了生命：最大生命 +8。'}else{this.loadout.hp=Math.min(this.loadout.maxHp,this.loadout.hp+35);this.message='喝下赤紅藥劑，恢復 35 生命。'}}
+  this.pendingChestChoices=[];return true;
+ }
+ resolveTile(t){
+  if(t.cleared)return;
+  if(t.type===TILE.BOSS&&this.turn<BOSS_TURN){this.message=`守門者仍在沉睡。${BOSS_TURN-this.turn} 步後甦醒。`;return}
+  if(t.type===TILE.ENEMY||t.type===TILE.BOSS){
+   const pool=t.type===TILE.BOSS?['boss']:['wolf','cultist','brute'];const id=pool[Math.floor(this.rng()*pool.length)];
+   const result=simulateCombat(this.loadout,ENEMIES[id],this.rng);this.loadout.hp=result.playerHp;this.lastCombat={enemy:ENEMIES[id],...result};
+   if(result.won){
+     t.cleared=true;this.gold+=(id==='boss'?50:6)+(id==='boss'?0:(this.loadout.passives.goldOnKill||0));
+     if(id==='boss'){this.won=true;this.message='裂界守門者倒下了。';}
+     else{this.message=`擊敗 ${ENEMIES[id].name}，獲得金幣並清除道路威脅。`;}
+   }else{this.dead=true;this.message='你倒在裂界之中。';}
+   return;
+  }
+  if(t.type===TILE.CHEST){this.pendingChestChoices=this.offerChestRewards();this.message='找到寶箱：從三項獎勵中選擇一項。';t.cleared=true;return}
+  if(t.type===TILE.SHRINE){this.loadout.maxHp+=12;this.loadout.hp=Math.min(this.loadout.maxHp,this.loadout.hp+30);this.message='古老祭壇回應了你：最大生命提高。';t.cleared=true;return}
+  if(t.type===TILE.WEAPON){const vals=Object.values(WEAPONS).filter(w=>w.id!==this.loadout.weapon.id);const w={...vals[Math.floor(this.rng()*vals.length)]};this.inventory.push({kind:'weapon',item:w});this.message=`發現武器：${w.name}`;t.cleared=true;return}
+  if(t.type===TILE.SUPPORT){const vals=Object.values(SUPPORTS);const s=vals[Math.floor(this.rng()*vals.length)];this.inventory.push({kind:'support',item:s});this.message=`發現支援技能：${s.name}`;t.cleared=true;return}
+  if(t.type===TILE.SMITH){t.cleared=true;this.pendingSmith=true;this.message='抵達鐵匠鋪，你可以購買一項工藝。';return}
+ }
+ equipWeapon(index){const slot=this.inventory[index];if(!slot||slot.kind!=='weapon')return false;this.loadout.weapon=slot.item;this.loadout.supports=this.loadout.supports.filter(id=>SUPPORTS[id]&&supportFits(slot.item,SUPPORTS[id])).slice(0,getSocketCapacity(this.loadout));this.inventory.splice(index,1);this.message=`裝備 ${slot.item.name}`;return true}
+ socket(index){const slot=this.inventory[index];if(!slot||slot.kind!=='support')return {ok:false};const result=socketSupport(this.loadout,slot.item.id);if(result.ok){this.inventory.splice(index,1);this.message=`${slot.item.name} 已連接到 ${this.loadout.weapon.name}`;}else if(result.reason==='incompatible')this.message='這顆支援技能與目前武器標籤不相容。';else if(result.reason==='full')this.message='目前武器沒有空技能孔。';return result}
+ smithAction(kind){
+   if(kind==='socket'){if(this.gold<14)return false;this.gold-=14;this.loadout.passives.socketBonus+=1;this.message='鐵匠擴充了你的武器孔位。';return true}
+   if(kind==='damage'){if(this.gold<12)return false;this.gold-=12;this.loadout.passives.damageMult*=1.12;this.message='鐵匠磨鋒了你的武器，傷害上升。';return true}
+   if(kind==='support'){if(this.gold<10)return false;this.gold-=10;const vals=Object.values(SUPPORTS);const s=vals[Math.floor(this.rng()*vals.length)];this.inventory.push({kind:'support',item:s});this.message=`鐵匠交給你支援技能：${s.name}`;return true}
+   return false;
+ }
+}
+
+const $=s=>document.querySelector(s);
+let game=new Game();
+let uiBusy=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const tileIcon=t=>{
+ if(t.cleared)return '·';
+ if(t.type===TILE.ENEMY)return '⚔';
+ if(t.type===TILE.CHEST)return '▤';
+ if(t.type===TILE.WEAPON)return '▣';
+ if(t.type===TILE.SUPPORT)return '✦';
+ if(t.type===TILE.SHRINE)return '◈';
+ if(t.type===TILE.BOSS)return '👹';
+ if(t.type===TILE.SMITH)return '⚒';
+ if(t.type===TILE.ROCK)return '🪨';
+ return '';
+};
+
+function worldPalette(){
+ const night=game.isNight();
+ return night?{grass:'#18211d',grass2:'#1c2821',road:'#655b45',roadEdge:'#332f25',water:'#21343a',fog:'rgba(4,7,6,.88)'}:{grass:'#344b36',grass2:'#3c5540',road:'#8a7651',roadEdge:'#554832',water:'#385760',fog:'rgba(10,15,12,.78)'};
+}
+function drawTree(ctx,x,y,s=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ ctx.fillStyle='#2b2017';ctx.fillRect(-3,5,6,15);
+ ctx.fillStyle='#1d3324';ctx.beginPath();ctx.arc(-8,2,12,0,Math.PI*2);ctx.arc(7,0,14,0,Math.PI*2);ctx.arc(0,-10,13,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#38543a';ctx.beginPath();ctx.arc(-5,-4,8,0,Math.PI*2);ctx.arc(7,-7,8,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawRock(ctx,x,y,s=1){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#555d56';ctx.strokeStyle='#2e342f';ctx.lineWidth=2;
+ const rocks=[[-10,6,11,8],[2,1,13,11],[12,8,8,6]];for(const [rx,ry,rw,rh] of rocks){ctx.beginPath();ctx.ellipse(rx,ry,rw,rh,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ ctx.fillStyle='#737b74';ctx.beginPath();ctx.ellipse(0,-3,7,3,-.2,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawBush(ctx,x,y,s=.8){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#263c2b';ctx.strokeStyle='#16241a';ctx.lineWidth=2;
+ for(const [dx,dy,r] of [[-7,1,7],[0,-4,9],[8,1,7],[1,4,8]]){ctx.beginPath();ctx.arc(dx,dy,r,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ ctx.fillStyle='#3f6042';ctx.beginPath();ctx.arc(-3,-5,3,0,Math.PI*2);ctx.arc(6,0,2.5,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawGrassTuft(ctx,x,y,s=.8){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.strokeStyle='#66885c';ctx.lineWidth=2;ctx.lineCap='round';
+ for(const [dx,h,sl] of [[-5,9,-3],[-2,12,-1],[2,11,1],[5,8,3]]){ctx.beginPath();ctx.moveTo(dx,5);ctx.quadraticCurveTo(dx+sl,0,dx+sl,-h);ctx.stroke()}
+ ctx.restore();
+}
+function drawFlowerPatch(ctx,x,y,s=.75){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#d9c77e';ctx.strokeStyle='#55724f';ctx.lineWidth=1.5;
+ for(const [dx,dy] of [[-6,2],[0,-2],[6,3]]){ctx.beginPath();ctx.moveTo(dx,7);ctx.lineTo(dx,dy+2);ctx.stroke();ctx.beginPath();ctx.arc(dx,dy,2.2,0,Math.PI*2);ctx.fill()}
+ ctx.restore();
+}
+function drawStump(ctx,x,y,s=.8){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#5a4631';ctx.strokeStyle='#2b2118';ctx.lineWidth=2;ctx.fillRect(-6,-2,12,9);ctx.strokeRect(-6,-2,12,9);ctx.fillStyle='#8d6d48';ctx.beginPath();ctx.ellipse(0,-2,6,3,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+}
+function drawPebble(ctx,x,y,s=.75){
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#70776d';ctx.strokeStyle='#353a35';ctx.lineWidth=1.5;
+ for(const [dx,dy,rx,ry] of [[-5,1,5,3],[3,-1,4,3],[7,4,3,2]]){ctx.beginPath();ctx.ellipse(dx,dy,rx,ry,-.2,0,Math.PI*2);ctx.fill();ctx.stroke()}
+ ctx.restore();
+}
+function drawPoi(ctx,type,x,y,r=21){
+ const styles={enemy:['#672f28','#e6b69a'],weapon:['#5d492c','#efd29b'],support:['#34477a','#d7e2ff'],shrine:['#355f3f','#c6e7bd'],chest:['#6e512d','#f1d18a'],boss:['#6d2526','#ffb5a8'],smith:['#714522','#ffd09b']};
+ const [bg,fg]=styles[type]||['#49534a','#eee'];
+ ctx.save();ctx.translate(x,y);ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;ctx.fillStyle=bg;ctx.strokeStyle='#141915';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowColor='transparent';ctx.fillStyle=fg;ctx.strokeStyle=fg;ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
+ if(type==='enemy'){ctx.beginPath();ctx.moveTo(-8,-8);ctx.lineTo(8,8);ctx.moveTo(8,-8);ctx.lineTo(-8,8);ctx.stroke();ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill()}
+ else if(type==='smith'){ctx.fillRect(-10,5,20,6);ctx.beginPath();ctx.moveTo(-9,5);ctx.lineTo(-4,-3);ctx.lineTo(8,-3);ctx.lineTo(11,2);ctx.lineTo(4,5);ctx.closePath();ctx.fill();ctx.fillRect(-2,11,4,7)}
+ else if(type==='chest'){ctx.strokeRect(-10,-5,20,14);ctx.beginPath();ctx.arc(0,-5,10,Math.PI,0);ctx.stroke();ctx.fillRect(-2,0,4,5)}
+ else if(type==='shrine'){ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(9,8);ctx.lineTo(-9,8);ctx.closePath();ctx.stroke();ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill()}
+ else if(type==='boss'){ctx.beginPath();ctx.arc(0,1,10,Math.PI,0);ctx.stroke();ctx.moveTo(-10,1);ctx.lineTo(-10,11);ctx.moveTo(10,1);ctx.lineTo(10,11);ctx.moveTo(-5,-6);ctx.lineTo(-10,-13);ctx.moveTo(5,-6);ctx.lineTo(10,-13);ctx.stroke()}
+ else if(type==='weapon'){ctx.beginPath();ctx.moveTo(-8,9);ctx.lineTo(8,-9);ctx.moveTo(5,-11);ctx.lineTo(10,-6);ctx.moveTo(-11,6);ctx.lineTo(-5,12);ctx.stroke()}
+ else if(type==='support'){ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,rr=i%2?5:12;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.stroke()}
+ ctx.restore();
+}
+function renderMap(){
+ const canvas=$('#worldCanvas');if(!canvas)return;const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height,N=game.world.size,cell=W/N,pal=worldPalette();
+ ctx.clearRect(0,0,W,H);
+ // seamless ground
+ const grd=ctx.createLinearGradient(0,0,0,H);grd.addColorStop(0,pal.grass2);grd.addColorStop(1,pal.grass);ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+ // broad organic terrain patches
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){const seed=(x*73856093^y*19349663^game.world.seed)>>>0;const cx=(x+.5)*cell,cy=(y+.5)*cell;ctx.fillStyle=seed%3===0?'rgba(92,118,80,.10)':'rgba(20,31,24,.08)';ctx.beginPath();ctx.arc(cx+(seed%17-8),cy+((seed>>4)%17-8),cell*.55,0,Math.PI*2);ctx.fill()}
+ // roads as continuous strokes between neighboring road cells
+ ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=pal.roadEdge;ctx.lineWidth=cell*.33;ctx.beginPath();
+ for(const row of game.world.tiles)for(const t of row)if(t.road){const x=(t.x+.5)*cell,y=(t.y+.5)*cell;for(const [dx,dy] of [[1,0],[0,1]]){const n=game.world.tiles[t.y+dy]?.[t.x+dx];if(n?.road){ctx.moveTo(x,y);ctx.lineTo((t.x+dx+.5)*cell,(t.y+dy+.5)*cell)}}}ctx.stroke();
+ ctx.strokeStyle=pal.road;ctx.lineWidth=cell*.24;ctx.beginPath();
+ for(const row of game.world.tiles)for(const t of row)if(t.road){const x=(t.x+.5)*cell,y=(t.y+.5)*cell;for(const [dx,dy] of [[1,0],[0,1]]){const n=game.world.tiles[t.y+dy]?.[t.x+dx];if(n?.road){ctx.moveTo(x,y);ctx.lineTo((t.x+dx+.5)*cell,(t.y+dy+.5)*cell)}}}ctx.stroke();
+ // map scenery: organic vegetation, stones and stumps, kept off the road network
+ for(const row of game.world.tiles)for(const t of row){
+  const cx=(t.x+.5)*cell,cy=(t.y+.5)*cell;const h=(t.x*92821+t.y*68917+game.world.seed*13)>>>0;
+  if(t.type===TILE.ROCK){drawRock(ctx,cx,cy+2,.9);continue}
+  if(t.road||t.type!==TILE.EMPTY)continue;
+  const kind=h%11, ox=((h>>3)%25)-12, oy=((h>>8)%25)-12;
+  if(kind===0||kind===1){drawTree(ctx,cx+ox*.45,cy+oy*.35,.58+(h%3)*.08);if(kind===0)drawBush(ctx,cx+13,cy+12,.55)}
+  else if(kind===2||kind===3){drawBush(ctx,cx+ox*.5,cy+oy*.45,.62);drawGrassTuft(ctx,cx-13,cy+10,.55)}
+  else if(kind===4){drawStump(ctx,cx+ox*.45,cy+oy*.35,.58);drawPebble(ctx,cx+12,cy+11,.45)}
+  else if(kind===5){drawFlowerPatch(ctx,cx+ox*.4,cy+oy*.35,.6);drawGrassTuft(ctx,cx+12,cy+8,.48)}
+  else if(kind===6){drawPebble(ctx,cx+ox*.45,cy+oy*.35,.55)}
+  else if(kind===7){drawGrassTuft(ctx,cx+ox*.5,cy+oy*.4,.7);drawGrassTuft(ctx,cx-11,cy+11,.45)}
+ }
+ // forest framing near the outer edges makes the board read as a place rather than an empty field
+ for(let i=0;i<N;i+=2){const edgeSeed=(i*97+game.world.seed)%5;if(edgeSeed<4){drawTree(ctx,(i+.35)*cell,cell*.38,.48);drawTree(ctx,(i+.7)*cell,H-cell*.28,.44)}}
+ // POIs
+ for(const row of game.world.tiles)for(const t of row){if(t.type===TILE.EMPTY||t.type===TILE.ROCK||t.cleared)continue;const cx=(t.x+.5)*cell,cy=(t.y+.5)*cell;drawPoi(ctx,t.type,cx,cy,t.type===TILE.BOSS?24:20)}
+ // player
+ const px=(game.pos.x+.5)*cell,py=(game.pos.y+.5)*cell;ctx.save();ctx.translate(px,py);ctx.shadowColor='rgba(244,201,113,.65)';ctx.shadowBlur=20;ctx.fillStyle='#d7b36a';ctx.strokeStyle='#201b13';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowColor='transparent';ctx.fillStyle='#262d27';ctx.beginPath();ctx.moveTo(-9,10);ctx.lineTo(0,-14);ctx.lineTo(9,10);ctx.closePath();ctx.fill();ctx.fillStyle='#f0d7a2';ctx.beginPath();ctx.arc(0,-6,4,0,Math.PI*2);ctx.fill();ctx.restore();
+ // fog / night vision overlays
+ const radius=game.visionRadius();for(const row of game.world.tiles)for(const t of row){const near=Math.max(Math.abs(t.x-game.pos.x),Math.abs(t.y-game.pos.y))<=radius;const visible=t.revealed&&(!game.isNight()||near);if(!visible){ctx.fillStyle=pal.fog;ctx.fillRect(t.x*cell,t.y*cell,cell+.5,cell+.5)}}
+ if(game.isNight()){const ng=ctx.createRadialGradient(px,py,cell*.55,px,py,cell*(radius+1.3));ng.addColorStop(0,'rgba(12,18,15,0)');ng.addColorStop(.62,'rgba(5,8,7,.2)');ng.addColorStop(1,'rgba(2,4,3,.62)');ctx.fillStyle=ng;ctx.fillRect(0,0,W,H)}
+ // soft vignette
+ const vg=ctx.createRadialGradient(W/2,H/2,W*.28,W/2,H/2,W*.7);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.52)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+}
+
+function weaponHtml(w,compact=false){
+ const b=compileBuild(w,game.loadout.weapon.id===w.id?game.loadout.supports:[],game.loadout.passives);
+ const sockets=Array.from({length:game.loadout.weapon.id===w.id?getSocketCapacity(game.loadout):w.sockets},(_,i)=>{const id=game.loadout.weapon.id===w.id?game.loadout.supports[i]:null,s=id?SUPPORTS[id]:null;return `<div class="socket ${s?'filled':''}" title="${s?s.name:'空技能孔'}">${s?s.icon:'○'}</div>`}).join('');
+ return `<div class="weapon-card"><div class="weapon-title"><strong>${w.icon} ${w.name}</strong><span>${game.loadout.weapon.id===w.id?getSocketCapacity(game.loadout):w.sockets} 孔</span></div><div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="sockets">${sockets}</div>${compact?'':`<div style="margin-top:10px;font-size:12px;color:#c7cdbf">傷害 ${b.damage.toFixed(1)} · 間隔 ${b.rate.toFixed(2)}s · 投射物 ${b.projectiles}${b.pierce?` · 穿透 ${b.pierce}`:''}${b.chain?` · 連鎖 ${b.chain}`:''}${b.ignite?` · 點燃 ${Math.round(b.ignite*100)}%`:''}</div>`}</div>`;
+}
+function renderWeapon(){ $('#weapon').innerHTML=weaponHtml(game.loadout.weapon); }
+function renderSkills(){
+ const root=$('#skillsPanel');root.innerHTML='';
+ const owned=Object.entries(game.loadout.skills);
+ if(!owned.length){root.innerHTML='<small style="color:#8b978f">尚未習得旅者技能。探索寶箱時有機會從三項獎勵中取得技能。</small>';return}
+ owned.forEach(([id,rank])=>{const s=SKILLS[id];const d=document.createElement('div');d.className='skill-pill';d.innerHTML=`<div class="ico">${s.icon}</div><div class="meta"><b>${s.name}</b><span>${s.desc}</span></div><div class="rank">Lv.${rank}</div>`;root.appendChild(d)});
+}
+
+function renderInventory(){
+ const root=$('#inventory');root.innerHTML='';
+ if(!game.inventory.length){root.innerHTML='<small style="color:#89958d">尚未找到裝備。探索 ▣ 與 ✦ 格子，或打開背包查看目前裝備。</small>';return}
+ game.inventory.slice(0,4).forEach((slot,i)=>{
+  const d=document.createElement('div');d.className='inv-item';
+  if(slot.kind==='weapon')d.innerHTML=`<div style="font-size:24px">${slot.item.icon}</div><div><strong>${slot.item.name}</strong><small>${slot.item.tags.join(' · ')} / ${slot.item.sockets} 孔</small></div><button>裝備</button>`;
+  else{const fits=supportFits(game.loadout.weapon,slot.item);d.innerHTML=`<div style="font-size:22px">${slot.item.icon}</div><div><strong>${slot.item.name}</strong><small>${slot.item.desc}${fits?'':' · 不相容'}</small></div><button ${fits?'':'disabled'}>插入</button>`}
+  d.querySelector('button').onclick=()=>{if(slot.kind==='weapon')game.equipWeapon(i);else game.socket(i);renderAll();renderBag()};root.appendChild(d);
+ });
+ if(game.inventory.length>4)root.insertAdjacentHTML('beforeend',`<small style="color:#89958d">另有 ${game.inventory.length-4} 件物品，打開背包查看。</small>`);
+}
+
+function renderBag(){
+ const w=game.loadout.weapon,b=compileBuild(w,game.loadout.supports,game.loadout.passives);
+ const socketHtml=Array.from({length:getSocketCapacity(game.loadout)},(_,i)=>{const id=game.loadout.supports[i],sup=id?SUPPORTS[id]:null;return `<div class="socket-slot ${sup?'filled':''}">${sup?`<strong>${sup.icon} ${sup.name}</strong><span>${sup.desc}</span><button data-unsocket="${i}" title="拔除">×</button>`:'<strong>空技能孔</strong><span>可插入與目前武器 Tag 相容的 Support</span>'}</div>`}).join('');
+ $('#bagEquipped').innerHTML=`<div class="big-weapon">${w.icon} ${w.name}</div><div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="socket-row">${socketHtml}</div><div class="menu-hint">主技能由武器決定；Support 透過技能孔連接後，會即時改變投射物、傷害、攻速與特殊效果。</div>`;
+ document.querySelectorAll('[data-unsocket]').forEach(btn=>btn.onclick=()=>{const i=Number(btn.dataset.unsocket),id=game.loadout.supports[i];if(id){game.inventory.push({kind:'support',item:SUPPORTS[id]});game.loadout.supports.splice(i,1);game.message=`已拔除 ${SUPPORTS[id].name}`;renderAll();renderBag()}});
+ const effects=[]; if(b.pierce)effects.push(`穿透 ${b.pierce}`); if(b.chain)effects.push(`連鎖 ${b.chain}`); if(b.ignite)effects.push(`點燃 ${Math.round(b.ignite*100)}%`); if(b.shock)effects.push(`感電 ${Math.round(b.shock*100)}%`);
+ $('#bagBuildSummary').innerHTML=`<div class="build-panel-stats"><div class="build-stat-card"><strong>${b.damage.toFixed(1)}</strong><span>單次傷害</span></div><div class="build-stat-card"><strong>${b.rate.toFixed(2)}s</strong><span>攻擊間隔</span></div><div class="build-stat-card"><strong>${b.projectiles}</strong><span>投射物</span></div><div class="build-stat-card"><strong>${getSocketCapacity(game.loadout)}</strong><span>技能孔</span></div></div><div class="effect-strip">${effects.length?effects.map(e=>`<span class="effect-chip">${e}</span>`).join(''):'<span class="effect-chip">沒有額外效果</span>'}</div>`;
+ const skillEntries=Object.entries(game.loadout.skills);
+ $('#bagSkillList').innerHTML=skillEntries.length?skillEntries.map(([id,rank])=>{const s=SKILLS[id];return `<div class="bag-skill-entry"><div class="ico">${s.icon}</div><div><b>${s.name}</b><span>${s.desc}</span></div><div class="lv">Lv.${rank}</div></div>`}).join(''):'<div class="menu-hint">尚未習得旅者技能。寶箱三選一時有機會取得新的技能或升級。</div>';
+ $('#bagCount').textContent=`${game.inventory.length} 件`;
+ const root=$('#bagInventory');root.innerHTML='';
+ if(!game.inventory.length){root.innerHTML='<div class="bag-empty menu-hint">背包目前是空的。繼續沿著道路探索，尋找武器、Support 與事件地點。</div>';return}
+ const groups=[['武器',game.inventory.map((slot,i)=>({...slot,index:i})).filter(s=>s.kind==='weapon')],['Support',game.inventory.map((slot,i)=>({...slot,index:i})).filter(s=>s.kind==='support')]];
+ groups.forEach(([label,items])=>{if(!items.length)return;const sec=document.createElement('div');sec.className='item-group';sec.innerHTML=`<h4>${label}</h4>`;items.forEach(slot=>{const d=document.createElement('div');d.className='bag-card';if(slot.kind==='weapon'){const preview=compileBuild(slot.item,[],game.loadout.passives);d.innerHTML=`<div class="ico">${slot.item.icon}</div><div><strong>${slot.item.name}</strong><small>${slot.item.tags.join(' · ')} · ${slot.item.sockets} 孔<br>預估傷害 ${preview.damage.toFixed(1)} · 間隔 ${preview.rate.toFixed(2)}s</small></div><button>裝備</button>`}else{const fits=supportFits(game.loadout.weapon,slot.item),full=game.loadout.supports.length>=getSocketCapacity(game.loadout);d.innerHTML=`<div class="ico">${slot.item.icon}</div><div><strong>${slot.item.name}</strong><small>${slot.item.desc}${!fits?' · 不相容':full?' · 技能孔已滿':''}</small></div><button ${fits&&!full?'':'disabled'}>插入</button>`}
+ d.querySelector('button').onclick=()=>{if(slot.kind==='weapon')game.equipWeapon(slot.index);else game.socket(slot.index);renderAll();renderBag()};sec.appendChild(d)});root.appendChild(sec)});
+}
+function openBag(){if(uiBusy||game.dead||game.won)return;renderBag();$('#bagModal').classList.remove('hidden')}
+function closeBag(){$('#bagModal').classList.add('hidden')}
+
+function updateCombatSummary(c){
+ if(!c)return;
+ $('#combatLog').innerHTML=`最近戰鬥：<b>${c.enemy.name}</b><br>${c.won?'勝利':'戰敗'} · ${c.seconds.toFixed(1)} 秒 · 施放 ${c.casts} 次`;
+}
+function fxProjectile(kind,index,total){
+ const fx=$('#battleFx'),el=document.createElement('i');
+ if(kind==='chain'){el.className='fx-lightning'}
+ else if(kind==='melee'){el.className='fx-slash'}
+ else{el.className=`fx-projectile ${kind==='projectile'?'':'fx-arrow'}`;el.style.top=`${47+(index-(total-1)/2)*7}%`;if(kind==='arrow')el.classList.add('fx-arrow')}
+ fx.appendChild(el);setTimeout(()=>el.remove(),700);
+}
+function floatDamage(side,damage,hurt=false,targetIndex=0){const fx=$('#battleFx'),d=document.createElement('div');d.className=`damage-float ${hurt?'hurt':''}`;d.textContent=`-${Math.round(damage)}`;if(side==='enemy'){const cards=[...document.querySelectorAll('.enemy-card')];const card=cards[targetIndex]||cards[0];if(card){const r=card.getBoundingClientRect(),s=$('#battleStage').getBoundingClientRect();d.style.left=`${r.left-s.left+r.width*.5}px`;d.style.top=`${Math.max(85,r.top-s.top-2)}px`;}else{d.style.left='75%';d.style.top='35%';}}else{d.style.left='19%';d.style.top='35%';}fx.appendChild(d);setTimeout(()=>d.remove(),700)}
+function setPlayerBattleHp(playerHp,playerMax){$('#battlePlayerHp').style.width=`${Math.max(0,playerHp/playerMax*100)}%`}
+function enemyUnitHtml(enemy){return enemy.art?`<img class="battle-unit sprite" src="${enemy.art}" alt="${enemy.name}">`:`<div class="battle-unit">${enemy.icon}</div>`}
+function renderEnemyGroup(enemy,enemyHps){const root=$('#battleEnemyGroup');root.innerHTML='';enemyHps.forEach((hp,i)=>{const card=document.createElement('div');card.className='enemy-card';card.dataset.enemyIndex=i;card.innerHTML=`${enemyUnitHtml(enemy)}<div class="battle-name">${enemy.name}${enemyHps.length>1?` ${i+1}`:''}</div><div class="battle-hp"><i style="width:${Math.max(0,hp/enemy.hp*100)}%"></i></div><div class="battle-status">${hp>0?'準備交戰':'已倒下'}</div>`;root.appendChild(card)});}
+function updateEnemyHp(index,hp,maxHp){const card=document.querySelector(`.enemy-card[data-enemy-index="${index}"]`);if(!card)return;const bar=card.querySelector('.battle-hp i');if(bar)bar.style.width=`${Math.max(0,hp/maxHp*100)}%`;if(hp<=0)card.classList.add('dead')}
+function pulseEnemy(index){const card=document.querySelector(`.enemy-card[data-enemy-index="${index}"]`);if(!card)return;card.classList.add('hit','targeted');setTimeout(()=>card.classList.remove('hit','targeted'),180)}
+function skillName(w){return w.id==='fireStaff'?'火球術':w.id==='longbow'?'穿心箭':w.id==='greatAxe'?'裂地斬':w.id==='stormWand'?'連鎖雷擊':w.name}
+
+async function playBattle(c){
+ uiBusy=true;closeBag();
+ const modal=$('#battleModal'),w=game.loadout.weapon,b=c.build;modal.classList.remove('hidden');$('#battleContinue').classList.add('hidden');$('#battleTurnLabel').textContent=`${c.enemy.name}${(c.enemies?.length||1)>1?` · ${(c.enemies?.length||1)} 名敵人`:''} · AUTO BATTLE`;
+ const enemyCount=Math.max(1,c.enemies?.length||1);const enemyHps=Array(enemyCount).fill(c.enemy.hp);
+ renderEnemyGroup(c.enemy,enemyHps);$('#battleBanner').innerHTML=`${iconSvg('sword',15)} ${w.name} <span style="opacity:.5;margin:0 8px">VS</span> ${c.enemy.name}${enemyCount>1?` ×${enemyCount}`:''}`;
+ $('#battleWeaponLine').innerHTML=`<b>${skillName(w)}</b> · 傷害 ${b.damage.toFixed(1)} · ${b.projectiles} 投射物 · ${b.rate.toFixed(2)}s`;
+ $('#battleSupports').innerHTML=game.loadout.supports.length?game.loadout.supports.map(id=>`<span class="support-chip">${SUPPORTS[id].icon} ${SUPPORTS[id].name}</span>`).join(''):'<span class="support-chip">沒有 Support</span>';
+ $('#battleLiveLog').textContent=`戰鬥開始 · 敵人 ${enemyCount} 名`;$('#battlePlayerStatus').textContent='';$('#battlePlayerUnit').className='battle-unit';
+ const received=c.log.filter(x=>x.type==='hurt').reduce((a,x)=>a+x.damage,0);let replayPlayerHp=Math.min(game.loadout.maxHp,c.playerHp+received);setPlayerBattleHp(replayPlayerHp,game.loadout.maxHp);
+ for(const ev of c.log){
+  if(ev.type==='cast'){
+   const label=skillName(w);$('#battleSkill').innerHTML=`${iconSvg(w.id==='fireStaff'?'fire':'sword',16)} ${label}`;$('#battleSkill').classList.add('show');$('#battlePlayerUnit').classList.add('attack');$('#battleLiveLog').textContent=`施放 ${label}${ev.projectiles>1?` ×${ev.projectiles}`:''}`;
+   for(let i=0;i<Math.min(7,ev.projectiles);i++){setTimeout(()=>fxProjectile(w.id==='stormWand'?'chain':w.id==='greatAxe'?'melee':w.id==='longbow'?'arrow':'projectile',i,Math.min(7,ev.projectiles)),i*45)}
+   await sleep(260);$('#battlePlayerUnit').classList.remove('attack');$('#battleSkill').classList.remove('show');
+  }else if(ev.type==='hit'){
+   const idx=Number.isInteger(ev.target)?ev.target:0;if(enemyHps[idx]===undefined)enemyHps[idx]=c.enemy.hp;enemyHps[idx]=Math.max(0,enemyHps[idx]-ev.damage);updateEnemyHp(idx,enemyHps[idx],c.enemy.hp);pulseEnemy(idx);floatDamage('enemy',ev.damage,false,idx);
+   const alive=enemyHps.filter(h=>h>0).length;$('#battleLiveLog').textContent=`命中 ${c.enemy.name}${enemyCount>1?` ${idx+1}`:''}，造成 ${Math.round(ev.damage)} 傷害 · 剩餘 ${alive} 名`;
+   const card=document.querySelector(`.enemy-card[data-enemy-index="${idx}"] .battle-status`);if(card){if(b.ignite>0)card.textContent='🔥 點燃';else if(b.shock>0)card.textContent='⚡ 感電';}
+   await sleep(145);
+  }else if(ev.type==='hurt'){
+   replayPlayerHp=Math.max(0,replayPlayerHp-ev.damage);floatDamage('player',ev.damage,true);$('#battlePlayerUnit').classList.add('hit');setPlayerBattleHp(replayPlayerHp,game.loadout.maxHp);$('#battleLiveLog').textContent=`敵方反擊，你受到 ${Math.round(ev.damage)} 傷害`;
+   await sleep(180);$('#battlePlayerUnit').classList.remove('hit');
+  }
+ }
+ if(c.won){enemyHps.fill(0);enemyHps.forEach((hp,i)=>updateEnemyHp(i,0,c.enemy.hp));$('#battleBanner').textContent='勝利 · 所有敵人已清除';$('#battleLiveLog').textContent=`戰鬥勝利，擊倒 ${enemyCount} 名敵人，共施放 ${c.casts} 次攻擊。`}
+ else{$('#battlePlayerUnit').classList.add('dead');$('#battleBanner').textContent='敗北 · 餘燼熄滅';$('#battleLiveLog').textContent='你倒在裂界之中。'}
+ setPlayerBattleHp(c.playerHp,game.loadout.maxHp);await sleep(220);$('#battleContinue').classList.remove('hidden');
+}
+function openChestChoice(){
+ if(!game.pendingChestChoices.length)return;uiBusy=true;const root=$('#skillChoices');root.innerHTML='';
+ game.pendingChestChoices.forEach((reward,index)=>{const card=document.createElement('div');card.className=`choice-card kind-${reward.kind}`;const kindLabel=reward.kind==='skill'?'旅者技能':reward.kind==='support'?'Support':reward.kind==='gold'?'資源':'補給';const ik=reward.kind==='skill'?'rune':reward.kind==='support'?'support':reward.kind==='gold'?'coin':'heal';card.innerHTML=`<div class="reward-kind">${iconSvg(ik,13)}${kindLabel}</div><div class="head"><div class="ico">${iconSvg(ik,24)}</div><div><h4>${reward.name}</h4><small>${reward.meta}</small></div></div><p>${reward.desc}</p><button>選擇這項獎勵</button>`;card.querySelector('button').onclick=()=>chooseChestReward(index);root.appendChild(card)});
+ $('#skillModal').classList.remove('hidden');
+}
+function chooseChestReward(index){const reward=game.pendingChestChoices[index];game.applyChestReward(reward);$('#skillModal').classList.add('hidden');uiBusy=false;renderAll()}
+function openSmith(){
+ if(!game.pendingSmith)return;uiBusy=true;$('#smithGoldLine').innerHTML=`${iconSvg('coin',16)}目前持有 ${game.gold} 金幣`;const root=$('#smithChoices');root.innerHTML='';
+ const options=[
+  {id:'socket',icon:'support',name:'擴充孔位',cost:14,desc:'目前武器額外 +1 孔，讓你能連接更多 Support。',detail:'讓你的主技能可以連接更多效果。'},
+  {id:'damage',icon:'sword',name:'磨鋒鍛打',cost:12,desc:'全域傷害提高 12%。',detail:'對所有武器都有效，適合快速強化輸出。'},
+  {id:'support',icon:'rune',name:'購買支援技能',cost:10,desc:'獲得 1 顆隨機 Support，直接放進背包。',detail:'有機會直接補足你的 Build 缺口。'}
+ ];
+ options.forEach(opt=>{const afford=game.gold>=opt.cost;const card=document.createElement('div');card.className='choice-card smith afford-'+afford;card.innerHTML=`<div class="reward-kind">工藝方案</div><div class="head"><div class="ico">${iconSvg(opt.icon,24)}</div><div><h4>${opt.name}</h4><small>花費 ${opt.cost} 金幣</small></div></div><p>${opt.desc}</p><small>${opt.detail}</small><button ${afford?'':'disabled'}>${afford?'購買':'金幣不足'}</button>`;card.querySelector('button').onclick=()=>smithAction(opt.id);root.appendChild(card)});
+ $('#smithModal').classList.remove('hidden');
+}
+function smithAction(kind){if(game.smithAction(kind)){game.pendingSmith=false;$('#smithModal').classList.add('hidden');uiBusy=false;renderAll()}else{renderAll();openSmith()}}
+function closeSmith(){game.pendingSmith=false;$('#smithModal').classList.add('hidden');uiBusy=false;renderAll()}
+function closeBattle(){if(!$('#battleContinue').classList.contains('hidden')){$('#battleModal').classList.add('hidden');uiBusy=false;renderAll()}}
+
+function poiMeta(type){
+ const data={
+  smith:{name:'鐵匠鋪',desc:'火爐與鐵砧。可以擴充孔位、磨鋒武器或購買 Support。',art:'forge'},
+  enemy:{name:'敵人營地',desc:'道路旁有敵意的氣息。踏入後會進入自動戰鬥。',art:'camp'},
+  shrine:{name:'古老祭壇',desc:'被苔蘚覆蓋的石壇，能提高最大生命並恢復生命。',art:'altar'},
+  chest:{name:'隱藏寶箱',desc:'重要的 Build 獎勵點。開啟後會出現三項獎勵，只能選擇其中一項。',art:'chest'},
+  boss:{name:'裂界之門',desc:'守門者沉睡之地。倒數結束後，它會等待你的挑戰。',art:'boss'},
+  weapon:{name:'遺落武具',desc:'散落在道路旁的武器。拾取後會放入背包。',art:'chest'},
+  support:{name:'法紋殘片',desc:'可與武器技能孔連結的 Support。',art:'altar'}
+ };return data[type]||null;
+}
+function renderPoiPreview(){
+ const root=$('#poiPreview');let best=null,bestD=99;
+ for(const row of game.world.tiles)for(const t of row){if(!t.revealed||t.cleared)continue;const meta=poiMeta(t.type);if(!meta)continue;const d=Math.abs(t.x-game.pos.x)+Math.abs(t.y-game.pos.y);if(d<bestD){bestD=d;best={t,meta}}}
+ if(!best||bestD>4){root.innerHTML='<div class="poi-info"><strong>道路向未知延伸</strong><span>靠近地標後，這裡會顯示事件插畫與用途。</span></div>';return}
+ const cls=best.meta.art;let art='';
+ if(cls==='forge')art='<div class="forge-house"></div><div class="anvil"></div>';
+ else if(cls==='camp')art=`<div class="tent"></div><div class="campfire"></div><img class="poi-creature" src="${ENEMIES.wolf.art}" alt="灰狼">`;
+ else if(cls==='altar')art='<div class="altar"></div>';
+ else if(cls==='chest')art='<div class="chest-art"></div>';
+ else if(cls==='boss')art='<div class="boss-gate"></div>';
+ root.innerHTML=`<div class="poi-art">${game.isNight()?'<div class="moon"></div>':''}${art}</div><div class="poi-info"><strong>${best.meta.name}</strong><span>${best.meta.desc}</span><span class="poi-distance">距離 ${bestD} 格</span></div>`;
+}
+
+function renderAll(){
+ renderMap();renderPoiPreview();renderWeapon();renderSkills();renderInventory();updateCombatSummary(game.lastCombat);
+ $('#message').textContent=game.message;$('#hp').textContent=`${Math.ceil(game.loadout.hp)} / ${game.loadout.maxHp}`;$('#gold').textContent=game.gold;const hpTop=$('#hpTop'),hpFill=$('#hpFill'),skillCount=$('#skillCount');if(hpTop)hpTop.textContent=`${Math.ceil(game.loadout.hp)} / ${game.loadout.maxHp}`;if(hpFill)hpFill.style.width=`${Math.max(0,game.loadout.hp/game.loadout.maxHp*100)}%`;if(skillCount)skillCount.textContent=Object.keys(game.loadout.skills).length;
+ const remain=Math.max(0,BOSS_TURN-game.turn);$('#turnText').textContent=remain?`${remain} 步`:'已甦醒';$('#threatFill').style.width=`${Math.min(100,game.turn/BOSS_TURN*100)}%`;const night=game.isNight(),phaseStep=game.turn%DAY_LENGTH,left=DAY_LENGTH-phaseStep;$('#dayCycle').innerHTML=night?`${iconSvg('moon',15)}夜晚 · ${left}步`:`${iconSvg('sun',15)}白天 · ${left}步`;$('#dayCycle').classList.toggle('night',night);document.querySelector('.app').classList.toggle('night',night);
+ if((game.dead||game.won)&&!uiBusy){$('#end').classList.remove('hidden');$('#endTitle').textContent=game.won?'遠征完成':'遠征失敗';$('#endText').textContent=game.won?'你用自己的技能組合擊敗了裂界守門者。':'調整武器與支援技能，再嘗試不同路線。'}
+}
+
+async function move(dx,dy){if(uiBusy||!$('#bagModal').classList.contains('hidden')||!$('#skillModal').classList.contains('hidden')||!$('#smithModal').classList.contains('hidden'))return;const before=game.lastCombat;if(game.move(dx,dy)){renderAll();if(game.lastCombat&&game.lastCombat!==before)await playBattle(game.lastCombat);else if(game.pendingSmith)openSmith();else if(game.pendingChestChoices.length)openChestChoice()}}
+document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{const [x,y]=b.dataset.move.split(',').map(Number);move(x,y)});
+$('#worldCanvas').addEventListener('click',e=>{const r=e.currentTarget.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*game.world.size),y=Math.floor((e.clientY-r.top)/r.height*game.world.size),dx=x-game.pos.x,dy=y-game.pos.y;if(Math.abs(dx)+Math.abs(dy)===1)move(dx,dy)});
+window.addEventListener('keydown',e=>{if(e.key==='i'||e.key==='I'||e.key==='b'||e.key==='B'){e.preventDefault();$('#bagModal').classList.contains('hidden')?openBag():closeBag();return}if(e.key==='Escape'){if(!$('#bagModal').classList.contains('hidden'))closeBag();return}const m={ArrowUp:[0,-1],w:[0,-1],W:[0,-1],ArrowDown:[0,1],s:[0,1],S:[0,1],ArrowLeft:[-1,0],a:[-1,0],A:[-1,0],ArrowRight:[1,0],d:[1,0],D:[1,0]}[e.key];if(m){e.preventDefault();move(...m)}});
+function reset(){game=new Game();uiBusy=false;$('#end').classList.add('hidden');$('#battleModal').classList.add('hidden');$('#bagModal').classList.add('hidden');$('#skillModal').classList.add('hidden');$('#smithModal').classList.add('hidden');$('#combatLog').innerHTML='踏入敵人格子後會切換到完整戰鬥畫面。<br>寶箱會提供三選一獎勵，技能只是其中一種可能。';renderAll()}
+$('#restart').onclick=reset;$('#again').onclick=reset;$('#openBag').onclick=openBag;$('#closeBag').onclick=closeBag;$('#closeSmith').onclick=closeSmith;$('#battleContinue').onclick=closeBattle;$('#bagModal').addEventListener('click',e=>{if(e.target.id==='bagModal')closeBag()});$('#smithModal').addEventListener('click',e=>{if(e.target.id==='smithModal')closeSmith()});$('#skillModal').addEventListener('click',e=>{if(e.target.id==='skillModal'&&game.pendingChestChoices.length)openChestChoice()});
+hydrateIcons();renderAll();
+</script></body></html>
