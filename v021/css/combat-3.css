@@ -1,0 +1,191 @@
+
+.tile .terrain-bit.crack{width:12px;height:1px;background:#0b100dcc;transform:rotate(-28deg);box-shadow:5px 4px 0 #0b100d88,-4px 3px 0 #0b100d66}
+.tile .terrain-bit.flower{width:4px;height:4px;border-radius:50%;background:#c7b274;box-shadow:4px 0 0 #9e8cb8,2px 3px 0 #c1cf8a}
+.tile .terrain-bit.path{left:0!important;top:44%!important;width:100%;height:8px!important;border-radius:0;background:linear-gradient(90deg,transparent,#75644a33 12%,#8f7c5b55 50%,#75644a33 88%,transparent);transform:rotate(var(--path-rot,0deg));filter:blur(.2px)}
+.tile.empty.path-tile .ground:before{background:linear-gradient(180deg,#2a362c,#1c251f),linear-gradient(90deg,#6e5d4333,#6e5d4333)}
+.tile.empty.path-tile{border-color:#4b493d}
+.tile.enemy:after,.tile.boss:after,.tile.smith:after,.tile.shrine:after,.tile.chest:after{content:"";position:absolute;inset:4px;border-radius:9px;border:1px dashed #ffffff12;z-index:1;pointer-events:none}
+.tile.shrine .ground:after{background:radial-gradient(circle at center,#78b87622,transparent 60%)}
+.tile.smith .ground:after{background:radial-gradient(circle at center,#ff9c4230,transparent 58%)}
+.tile.chest .ground:after{background:radial-gradient(circle at center,#d5b35b22,transparent 55%)}
+.tile.weapon .ground:after,.tile.support .ground:after{background:radial-gradient(circle at center,#8aa0d126,transparent 58%)}
+.tile.rock .rock-cluster{transform:scale(.92)}
+.map-wrap{position:relative;overflow:hidden}
+.map-wrap .edge-deco{position:absolute;pointer-events:none;z-index:0;color:#7f8b7650;font-size:18px}
+.map-wrap .edge-deco.e1{left:18px;top:18px;transform:rotate(-18deg)}
+.map-wrap .edge-deco.e2{right:24px;top:24px;transform:rotate(26deg)}
+.map-wrap .edge-deco.e3{left:26px;bottom:24px;transform:rotate(12deg)}
+.map-wrap .edge-deco.e4{right:18px;bottom:18px;transform:rotate(-22deg)}
+@media(max-width:900px){.map{gap:3px;transform:none}.tile .terrain-bit.path{height:6px!important}}
+
+
+/* v0.7 visual overhaul */
+.app{max-width:1520px}
+.main.panel,.side.panel{background:linear-gradient(180deg,#171b17 0%,#101411 100%);border-color:#5a614f}
+.main.panel{box-shadow:0 20px 60px #000a,inset 0 1px 0 #ffffff12}
+.side.panel{background:linear-gradient(180deg,#151813 0%,#0e120f 100%)}
+.brand h1{letter-spacing:.18em}
+.top{padding-bottom:10px}
+.map-wrap{padding:20px 22px;border-radius:24px;border:1px solid #65583d;background:
+ radial-gradient(circle at 50% 10%,#3a4335 0%,#1d241d 32%,#111612 76%),
+ linear-gradient(180deg,#33281b 0%,#171a16 100%);box-shadow:inset 0 0 0 1px #ffffff0d,inset 0 40px 60px #ffffff04,0 22px 50px #0008}
+.map{gap:2px;padding:14px;border-radius:22px;background:radial-gradient(circle at center,#1b241d 0%,#121914 62%,#0b100d 100%);box-shadow:inset 0 0 0 1px #ffffff08}
+.map-wrap:before,.map-wrap:after{border-color:#b4935a4f}
+.tile{border:none;border-radius:11px;background:transparent;box-shadow:none;overflow:hidden}
+.tile:after{display:none}
+.tile:before{display:none}
+.tile .ground{inset:0;border-radius:11px;overflow:hidden}
+.tile .ground:before{border-radius:11px;opacity:1}
+.tile.empty,.tile.enemy,.tile.weapon,.tile.support,.tile.shrine,.tile.chest,.tile.boss,.tile.smith,.tile.rock{box-shadow:inset 0 0 0 1px #00000020}
+.tile.empty .ground:before{background:
+ radial-gradient(circle at 18% 20%,#6e8f6130 0 8%,transparent 8.5%),
+ radial-gradient(circle at 70% 76%,#5b74542a 0 10%,transparent 10.5%),
+ radial-gradient(circle at 46% 38%,#7e5f3624 0 7%,transparent 7.5%),
+ linear-gradient(180deg,#324030 0%,#233028 58%,#1b251f 100%)}
+.tile.path-tile .ground:before{background:
+ linear-gradient(125deg,transparent 0 27%,#65573d55 27% 39%,transparent 39% 100%),
+ radial-gradient(circle at 18% 20%,#6e8f6130 0 8%,transparent 8.5%),
+ radial-gradient(circle at 70% 76%,#5b74542a 0 10%,transparent 10.5%),
+ linear-gradient(180deg,#334031 0%,#253129 58%,#1c2620 100%)}
+.tile .deco{display:none}
+.tile .terrain-bit{z-index:1;opacity:.9}
+.tile .terrain-bit.path{left:-10%;right:-10%;top:46%;height:8px;border-radius:20px;background:linear-gradient(90deg,transparent 0 8%,#8b73504f 18%,#715b414d 52%,#8b73504f 84%,transparent 92%);transform:rotate(-6deg)}
+.tile .terrain-bit.grass{width:16px;height:9px;background:none}
+.tile .terrain-bit.grass:before{content:"";position:absolute;left:0;bottom:0;width:3px;height:8px;border-radius:3px 3px 0 0;background:#96b07a;box-shadow:4px -1px 0 #7d9469,8px 0 0 #a3bd87,12px -2px 0 #7b9165}
+.tile .terrain-bit.pebble{width:13px;height:10px;background:none}
+.tile .terrain-bit.pebble:before{content:"";position:absolute;left:0;top:2px;width:5px;height:4px;border-radius:50%;background:#7b8178;box-shadow:5px -2px 0 #91988f,7px 4px 0 #686d66}
+.tile .terrain-bit.twig{width:15px;height:2px;border-radius:999px;background:#7b6545;transform:rotate(24deg)}
+.tile .terrain-bit.crack{width:15px;height:1px;background:#151a16;transform:rotate(-20deg);box-shadow:5px 4px 0 #171d18,-3px 3px 0 #171d18}
+.tile .terrain-bit.flower{width:14px;height:14px;background:none}
+.tile .terrain-bit.flower:before{content:"✿";position:absolute;left:0;top:-2px;font-size:11px;color:#d8cf92b5}
+.marker{position:relative;z-index:3;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;margin:auto;margin-top:8px;box-shadow:0 6px 16px #0007,inset 0 1px 0 #ffffff18;border:1px solid #00000055}
+.marker .glyph{font-size:15px;filter:drop-shadow(0 1px 2px #0007)}
+.marker-enemy{background:radial-gradient(circle at 35% 30%,#9e5c4f,#4b241d)}
+.marker-weapon{background:radial-gradient(circle at 35% 30%,#b39160,#4d3720)}
+.marker-support{background:radial-gradient(circle at 35% 30%,#6f84b5,#28314f)}
+.marker-shrine{background:radial-gradient(circle at 35% 30%,#87ab7f,#28412f)}
+.marker-chest{background:radial-gradient(circle at 35% 30%,#b59763,#4f3a24)}
+.marker-boss{background:radial-gradient(circle at 35% 30%,#b96456,#4d1d1d);width:30px;height:30px}
+.marker-smith{background:radial-gradient(circle at 35% 30%,#c8864f,#53321a)}
+.tile.rock .ground:before{background:linear-gradient(180deg,#364038,#252d27)}
+.rock-cluster{width:26px;height:18px;margin:auto;margin-top:10px}
+.rock-cluster i:nth-child(1){left:1px;bottom:2px;width:12px;height:10px}
+.rock-cluster i:nth-child(2){left:9px;bottom:5px;width:13px;height:11px}
+.rock-cluster i:nth-child(3){left:16px;bottom:1px;width:8px;height:8px}
+.tile.player{box-shadow:0 0 0 2px #d5b26b88,inset 0 0 0 1px #f6dea055;border-radius:12px;animation:playerPulse 1.8s ease-in-out infinite}
+.tile .p{width:22px;height:22px;bottom:4px;right:4px;border:1px solid #5f4927}
+.legend{background:linear-gradient(180deg,#141914,#0d110e);border-color:#4f584c;color:#d0d5c7}
+.message,.section,.weapon-card,.combat-log,.battle-shell,.modal-card,.end-card{border-color:#4a5446}
+.section h3:before{color:#c9a461}
+.weapon-card,.stat,.skill-pill,.choice-card{background:linear-gradient(180deg,#1a201b,#111512)}
+.top-actions button,.controls button,.action,.close-btn,.continue-battle,.bag-card button,.inv-item button{background:linear-gradient(180deg,#2e352f,#1e241f);border-color:#666f61}
+.battle-stage{background:radial-gradient(circle at 50% 30%,#475a49 0,#24312a 38%,#0f1511 100%)}
+.battle-stage:before{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(180deg,transparent 0%,#223026 50%,#151b17 100%)}
+.message:before{content:'遠征誌'}
+@media(max-width:900px){.map{gap:1px;padding:8px}.marker{width:24px;height:24px}.marker .glyph{font-size:13px}.map-wrap{padding:12px}}
+
+
+/* v0.8 road-map architecture */
+.map{gap:0;padding:10px;border-radius:20px;overflow:hidden;background:#172017;box-shadow:inset 0 0 0 1px #ffffff09,0 16px 32px #0007}
+.tile{border-radius:0!important;box-shadow:none!important;overflow:visible;background:transparent!important}
+.tile .ground{border-radius:0!important;overflow:visible}
+.tile .ground:before{border-radius:0!important}
+.tile.empty .ground:before,.tile.enemy .ground:before,.tile.weapon .ground:before,.tile.support .ground:before,.tile.shrine .ground:before,.tile.chest .ground:before,.tile.boss .ground:before,.tile.smith .ground:before,.tile.rock .ground:before{background:
+ radial-gradient(circle at 22% 22%,#6f8e5d2a 0 7%,transparent 7.5%),
+ radial-gradient(circle at 76% 74%,#58724825 0 9%,transparent 9.5%),
+ linear-gradient(180deg,#334432 0%,#253529 58%,#1c2820 100%)}
+.tile:nth-child(4n+1) .ground:before{background:
+ radial-gradient(circle at 70% 25%,#81996a24 0 9%,transparent 9.5%),
+ linear-gradient(180deg,#344735 0%,#26362a 58%,#1c2921 100%)}
+.tile:nth-child(4n+2) .ground:before{background:
+ radial-gradient(circle at 25% 70%,#76905d24 0 8%,transparent 8.5%),
+ linear-gradient(180deg,#314130 0%,#243227 58%,#1b261f 100%)}
+.tile:nth-child(4n+3) .ground:before{background:
+ radial-gradient(circle at 74% 66%,#6c84592a 0 10%,transparent 10.5%),
+ linear-gradient(180deg,#364735 0%,#26352a 58%,#1d2922 100%)}
+.road-net{position:absolute;inset:0;z-index:1;pointer-events:none}
+.road-net span{position:absolute;background:linear-gradient(90deg,#6a593d,#8a724b 42%,#705d3f);box-shadow:inset 0 1px 0 #c9ad7240,0 1px 2px #0004}
+.road-net .h{left:-2%;right:-2%;top:41%;height:20%;border-radius:12px}
+.road-net .v{top:-2%;bottom:-2%;left:41%;width:20%;border-radius:12px;background:linear-gradient(180deg,#6a593d,#8a724b 42%,#705d3f)}
+.road-net .dot{left:35%;top:35%;width:30%;height:30%;border-radius:50%;background:#826c48}
+.tile.road-junction .road-net .dot{box-shadow:0 0 0 3px #5d4d3440}
+.tile .terrain-bit{z-index:2}
+.tile .marker{z-index:4;margin-top:6px;width:30px;height:30px;border-radius:9px;transform:translateY(-1px);border:1px solid #1118;box-shadow:0 6px 14px #0008,inset 0 1px 0 #ffffff22}
+.marker-enemy{background:linear-gradient(180deg,#7c3c35,#3a1f1b)}
+.marker-weapon{background:linear-gradient(180deg,#8a7448,#4b3925)}
+.marker-support{background:linear-gradient(180deg,#536d9f,#2c3857)}
+.marker-shrine{background:linear-gradient(180deg,#5d815b,#2c482f)}
+.marker-chest{background:linear-gradient(180deg,#8d6f40,#4e3821)}
+.marker-boss{background:linear-gradient(180deg,#8b3f38,#431b1a)}
+.marker-smith{background:linear-gradient(180deg,#9a6338,#4e321d)}
+.tile.player{box-shadow:inset 0 0 0 2px #e2c27a88!important;z-index:5}
+.tile.player .ground:after{content:"";position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,#f0d99322 0,transparent 66%);box-shadow:0 0 18px #f0cf7a40}
+.rock-cluster{z-index:4}
+.tile.fog .road-net,.tile.night-fog .road-net{opacity:.08}
+.tile.fog .marker,.tile.night-fog .marker{opacity:0}
+.map-wrap{background:
+ radial-gradient(circle at 20% 20%,#30412f 0,transparent 30%),
+ radial-gradient(circle at 80% 85%,#273827 0,transparent 28%),
+ linear-gradient(180deg,#161d17,#0d120f);border-color:#5e5a43}
+.map-wrap .edge-deco{display:none}
+.poi-preview{min-height:160px;border:1px solid #3d493f;border-radius:14px;overflow:hidden;background:#0d120f}
+.poi-art{height:112px;position:relative;overflow:hidden;background:linear-gradient(180deg,#506653 0%,#2e3f32 52%,#19231d 100%)}
+.poi-art:after{content:"";position:absolute;left:0;right:0;bottom:0;height:35%;background:linear-gradient(180deg,#26372a,#17211a)}
+.poi-art .moon{position:absolute;right:18px;top:12px;width:26px;height:26px;border-radius:50%;background:#e0d6a4;box-shadow:0 0 18px #f1dda855}
+.poi-art .forge-house{position:absolute;left:58px;bottom:28px;width:84px;height:52px;background:#5c4934;border:3px solid #271c13;z-index:2}.poi-art .forge-house:before{content:"";position:absolute;left:-10px;top:-28px;border-left:52px solid transparent;border-right:52px solid transparent;border-bottom:34px solid #3a2a1c}.poi-art .forge-house:after{content:"";position:absolute;right:10px;bottom:0;width:20px;height:31px;background:#271b13;box-shadow:-45px 8px 0 -4px #e89945}
+.poi-art .anvil{position:absolute;left:158px;bottom:25px;width:44px;height:12px;background:#7c817e;z-index:3;border-radius:3px}.poi-art .anvil:before{content:"";position:absolute;left:10px;top:10px;width:23px;height:18px;background:#525754}.poi-art .anvil:after{content:"";position:absolute;right:-14px;top:1px;border-left:16px solid #7c817e;border-top:5px solid transparent;border-bottom:5px solid transparent}
+.poi-art .campfire{position:absolute;left:50%;bottom:25px;transform:translateX(-50%);z-index:3;width:32px;height:34px;background:radial-gradient(circle at 50% 70%,#ffdd6c 0 14%,#f28d38 30%,#9e3424 56%,transparent 58%);filter:drop-shadow(0 0 9px #ff9c3a88)}
+.poi-art .tent{position:absolute;left:68px;bottom:25px;z-index:2;border-left:32px solid transparent;border-right:32px solid transparent;border-bottom:52px solid #574936;filter:drop-shadow(0 5px 4px #0007)}
+.poi-art .altar{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:86px;height:12px;background:#5c645d;z-index:3;box-shadow:0 -10px 0 -2px #4b554e,0 -22px 0 -4px #3d4741}.poi-art .altar:before{content:"";position:absolute;left:36px;bottom:14px;width:14px;height:44px;background:#68736b;box-shadow:0 0 16px #86d79b44}
+.poi-art .chest-art{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:62px;height:38px;border-radius:8px 8px 5px 5px;background:#7a5730;border:3px solid #332112;z-index:3}.poi-art .chest-art:before{content:"";position:absolute;left:-3px;right:-3px;top:-17px;height:20px;border-radius:22px 22px 4px 4px;background:#8a673a;border:3px solid #332112}.poi-art .chest-art:after{content:"";position:absolute;left:26px;top:10px;width:9px;height:12px;background:#c6a04c}
+.poi-art .boss-gate{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:95px;height:68px;border:9px solid #4f3734;border-bottom-width:14px;border-radius:50px 50px 4px 4px;z-index:3;box-shadow:inset 0 0 22px #8f262655,0 0 18px #0008}.poi-art .boss-gate:before{content:"";position:absolute;left:24px;right:24px;top:14px;bottom:0;background:#170d0d;box-shadow:inset 0 0 16px #b02b2b44}
+.poi-info{padding:10px 12px}.poi-info strong{display:block;color:#e8d6aa;font-size:14px}.poi-info span{display:block;color:#9ca89f;font-size:11px;line-height:1.45;margin-top:3px}
+.poi-distance{display:inline-block!important;margin-top:7px!important;padding:3px 7px;border:1px solid #4a584d;border-radius:999px;color:#c8d1c5!important}
+@media(max-width:900px){.map{padding:5px}.road-net .h{height:24%;top:38%}.road-net .v{width:24%;left:38%}.tile .marker{width:24px;height:24px;margin-top:4px}.poi-preview{min-height:140px}.poi-art{height:92px}}
+
+
+/* v0.8.1 cleanup: remove noisy per-tile decorations */
+.tile .terrain-bit,.tile .deco{display:none!important}
+.tile.empty .ground:before{background:linear-gradient(180deg,#304032 0%,#26352b 58%,#1d2922 100%)!important}
+.tile.road-tile .ground:before{background:linear-gradient(180deg,#314133 0%,#27372d 58%,#1e2a23 100%)!important}
+
+
+/* v0.8.2 multi-enemy battle */
+.enemy-group{position:absolute;right:5%;bottom:58px;display:flex;align-items:flex-end;justify-content:flex-end;gap:16px;max-width:52%;z-index:2}
+.enemy-card{width:112px;text-align:center;transition:.18s transform,.18s filter,.18s opacity}
+.enemy-card .battle-unit{font-size:64px}
+.enemy-card .battle-hp{width:100px}
+.enemy-card .battle-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.enemy-card .battle-status{font-size:10px}
+.enemy-card.hit .battle-unit{animation:unitHit .25s ease-out}
+.enemy-card.dead{opacity:.32;filter:grayscale(1)}
+.enemy-card.dead .battle-unit{transform:rotate(14deg) translateY(8px)}
+
+.enemy-card .battle-unit.sprite{display:block;width:126px;height:126px;object-fit:contain;margin:-10px auto 2px;filter:drop-shadow(0 10px 14px #000b)}
+.enemy-card.dead .battle-unit.sprite{filter:grayscale(1) brightness(.8) drop-shadow(0 10px 14px #000b)}
+.poi-art .poi-creature{position:absolute;right:10px;bottom:-8px;width:154px;height:154px;object-fit:contain;z-index:4;filter:drop-shadow(0 10px 16px #000b)}
+.poi-art .tent{left:42px}
+.poi-art .campfire{left:40%;bottom:22px}
+@media(max-width:760px){.enemy-card .battle-unit.sprite{width:92px;height:92px;margin:-4px auto 2px}.poi-art .poi-creature{width:112px;height:112px;right:0;bottom:-2px}}
+
+.enemy-card.targeted{transform:translateY(-5px);filter:brightness(1.22)}
+@media(max-width:760px){.enemy-group{right:2%;gap:7px;max-width:58%}.enemy-card{width:78px}.enemy-card .battle-unit{font-size:46px}.enemy-card .battle-hp{width:72px}.enemy-card .battle-name{font-size:10px}}
+
+
+/* v0.9 canvas world renderer */
+.canvas-wrap{display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:16px;background:radial-gradient(circle at 50% 38%,#263327 0%,#151d17 58%,#0d120f 100%);border-color:#665b45}
+#worldCanvas{display:block;width:min(100%,936px);height:auto;aspect-ratio:1;border-radius:20px;touch-action:manipulation;cursor:pointer;box-shadow:0 20px 50px #0009,inset 0 0 0 1px #ffffff12;background:#1b261d}
+.canvas-hint{position:absolute;right:24px;bottom:18px;padding:6px 9px;border-radius:999px;background:#0a0f0ccc;border:1px solid #4f5a4e;color:#9fa99f;font-size:10px;pointer-events:none;letter-spacing:.04em}
+.map{display:none!important}
+@media(max-width:900px){.canvas-wrap{padding:7px}.canvas-hint{right:12px;bottom:10px;font-size:9px}}
+
+
+/* v0.11 UI redesign - inventory / forge / battle */
+.modal-card{width:min(1180px,96vw);background:linear-gradient(180deg,#151a17,#0b0f0d);border-color:#60553f;box-shadow:0 28px 90px #000c,inset 0 1px 0 #ffffff08}
+.modal-head-rich{padding:18px 22px;background:linear-gradient(180deg,#1b211d,#121713);border-bottom-color:#413d31}
+.modal-head-rich h2{font-size:24px;letter-spacing:.06em}
+.modal-kicker{font-size:11px;letter-spacing:.22em;color:#a59a82;margin-bottom:6px}
+.modal-battle .battle-shell{padding:18px}
+.modal-battle .battle-stage{height:430px;border-radius:22px;border-color:#4f5546;background:radial-gradient(circle at 50% 35%,#3f5445 0,#273329 38%,#101613 78%,#080b0a 100%);box-shadow:inset 0 -80px 110px #0008,inset 0 0 0 1px #ffffff08}
+.modal-battle .battle-stage:after{content:"";position:absolute;left:0;right:0;bottom:0;height:130px;background:linear-gradient(180deg,transparent,#19211c 56%,#121713 100%)}
+.modal-battle .battle-banner{top:18px;background:#0a0f0ccc;border-color:#68614f;color:#e6dcc4;padding:9px 18px;font-weight:700}
