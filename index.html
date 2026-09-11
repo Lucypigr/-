@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>GRIMPATH v0.17.2</title>
+  <title>GRIMPATH v0.18</title>
   <style>html,body{margin:0;background:#090c0a;color:#ddd;font-family:system-ui}#loading{height:100vh;display:grid;place-items:center;text-align:center;letter-spacing:.08em}small{display:block;color:#999;margin-top:8px}</style>
 </head>
 <body>
-<div id="loading">GRIMPATH v0.17.2<small>載入隨機地景與建築…</small></div>
+<div id="loading">GRIMPATH v0.18<small>生成不規則主路與分支路網…</small></div>
 <script>
 (async()=>{
   try{
-    const r=await fetch('./index_v0.17_full_embedded.html?build=0172',{cache:'no-store'});
+    const r=await fetch('./index_v0.17_full_embedded.html?build=018',{cache:'no-store'});
     if(!r.ok)throw new Error('HTTP '+r.status);
     let html=await r.text();
-    html=html.replace(/<title>.*?<\/title>/i,'<title>GRIMPATH v0.17.2</title>');
-    html=html.replace('</body>','<script src="./hotfix0172.js?build=0172"><\\/script></body>');
+    html=html.replace(/<title>.*?<\/title>/i,'<title>GRIMPATH v0.18</title>');
+    html=html.replace('</body>','<script src="./hotfix018.js?build=018"><\\/script></body>');
     document.open();document.write(html);document.close();
   }catch(e){document.getElementById('loading').innerHTML='載入失敗<small>'+String(e)+'</small>'}
 })();
