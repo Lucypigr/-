@@ -22,7 +22,11 @@
   for(const node of shuffled){const roads=allRoads().sort((a,b)=>dist(a,node)-dist(b,node)),pool=Math.min(8,roads.length),target=roads[Math.min(pool-1,Math.floor(Math.pow(rng(),1.7)*pool))]||hub;route(node,target,rng()<.22?'wild':'normal');mark(node.x,node.y)}
   const loops=1+Math.floor(rng()*3);for(let i=0;i<loops;i++){const roads=allRoads().filter(p=>neighbors(p.x,p.y)<=2);if(roads.length<6)break;const a=roads[Math.floor(rng()*roads.length)],candidates=roads.filter(b=>dist(a,b)>=5&&dist(a,b)<=10);if(candidates.length)route(a,candidates[Math.floor(rng()*candidates.length)],'wild')}
   const spurCount=2+Math.floor(rng()*5);for(let i=0;i<spurCount;i++){const roads=allRoads().filter(p=>neighbors(p.x,p.y)<=2);if(!roads.length)break;const a=roads[Math.floor(rng()*roads.length)],len=2+Math.floor(rng()*4),dir=DIRS[Math.floor(rng()*DIRS.length)],b={x:clamp(a.x+dir[0]*len,1,size-2),y:clamp(a.y+dir[1]*len,1,size-2)};if(dist(a,b)>=2)route(a,b,'wild')}
-  for(const n of nodes)mark(n.x,n.y);mark(hub.x,hub.y);world.decorations=generateDecorations(world,(seed^0x210021)>>>0);world.roadVersion='organic-multi-trunk-loops-v021';return world;
+  for(const n of nodes)mark(n.x,n.y);mark(hub.x,hub.y);
+  const reachable=()=>{const seen=new Set([key(hub.x,hub.y)]),q=[hub];while(q.length){const p=q.shift();for(const [dx,dy] of DIRS){const nx=p.x+dx,ny=p.y+dy,k=key(nx,ny);if(isRoad(nx,ny)&&!seen.has(k)){seen.add(k);q.push({x:nx,y:ny})}}}return seen};
+  let seen=reachable();
+  for(const n of nodes){const nk=key(n.x,n.y);if(seen.has(nk))continue;const connected=allRoads().filter(p=>seen.has(key(p.x,p.y))).sort((a,b)=>dist(a,n)-dist(b,n));const target=connected[0]||hub;walk(n,target,{stopOnHit:false,meander:.12});seen=reachable()}
+  world.decorations=generateDecorations(world,(seed^0x210021)>>>0);world.roadVersion='organic-multi-trunk-loops-v021';return world;
  }
  createWorld=function(seed=1){return makeRoadNetwork(baseCreateWorld(seed),seed)};
  const oldReset=Game.prototype.reset;
