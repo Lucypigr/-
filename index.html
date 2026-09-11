@@ -16,17 +16,18 @@
 (async()=>{
   try{
     const [gameRes,patchRes]=await Promise.all([
-      fetch('./index_v0.17_full_embedded.html?build=0182',{cache:'no-store'}),
-      fetch('./hotfix018.js?build=0182',{cache:'no-store'})
+      fetch('./index_v0.17_full_embedded.html?build=0182b',{cache:'no-store'}),
+      fetch('./hotfix018.js?build=0182b',{cache:'no-store'})
     ]);
     if(!gameRes.ok)throw new Error('game HTTP '+gameRes.status);
     if(!patchRes.ok)throw new Error('patch HTTP '+patchRes.status);
     let html=await gameRes.text();
     const patch=await patchRes.text();
+    const stamp="setTimeout(()=>{document.title='GRIMPATH v0.18.2';const s=document.querySelector('.brand small');if(s)s.textContent='荒暮森林 · 多主幹隨機路網 v0.18.2';},0);";
     html=html.replace(/<title>.*?<\/title>/i,'<title>GRIMPATH v0.18.2</title>');
     const openTag='<scr'+'ipt>';
     const closeTag='</scr'+'ipt>';
-    const safePatch=patch.replace(/<\/script/gi,'<\\/script');
+    const safePatch=(patch+'\n'+stamp).replace(/<\/script/gi,'<\\/script');
     html=html.replace('</body>',openTag+safePatch+closeTag+'</body>');
     document.open();
     document.write(html);
