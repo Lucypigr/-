@@ -1,8 +1,12 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>GRIMPATH v0.21 · Modular</title><link rel="stylesheet" href="css/game.css?v=021">
-<link rel="stylesheet" href="css/combat.css?v=021"></head><body><div class="app app-v12">
+<link rel="stylesheet" href="css/combat-1.css?v=021">
+<link rel="stylesheet" href="css/combat-2.css?v=021">
+<link rel="stylesheet" href="css/combat-3.css?v=021">
+<link rel="stylesheet" href="css/combat-4.css?v=021">
+</head><body><div class="app app-v12">
 <section class="main panel main-v12">
  <div class="game-hud">
-   <div class="brand-block"><div class="eyebrow">DARK EXPEDITION</div><h1>GRIMPATH</h1><small>荒暮森林 · 逐格遠征</small></div>
+   <div class="brand-block"><div class="eyebrow">DARK EXPEDITION</div><h1>GRIMPATH</h1><small>荒暮森林 · 模組化核心 v0.21</small></div>
    <div class="hud-center">
       <div class="hp-wrap"><span>生命</span><div class="hp-track"><i id="hpFill"></i><b id="hpTop"></b></div></div>
       <div id="dayCycle" class="daycycle daycycle-v12">☀ 白天</div>
@@ -30,18 +34,14 @@
 <div id="skillModal" class="modal-backdrop hidden"><div class="modal-card chest-modal"><div class="chest-stage-head"><div class="chest-art" aria-hidden="true"><div class="chest-lid"></div><div class="chest-body"></div><div class="chest-lock"></div><div class="chest-glow"></div></div><div class="chest-eyebrow">LOOT CACHE</div><h2>選擇你的獎勵</h2><p>寶箱只允許帶走一項。選擇會直接改變這次遠征的 Build。</p></div><div class="choice-body chest-choice-body"><div id="skillChoices" class="choice-grid chest-choice-grid"></div><div class="chest-choice-hint">每個寶箱固定提供技能、Support 與資源類獎勵中的組合。</div></div></div></div>
 <div id="smithModal" class="modal-backdrop hidden"><div class="modal-card modal-smith"><div class="modal-head modal-head-rich"><div><div class="modal-kicker">FORGE EVENT</div><h2><span data-icon="anvil"></span>黑鐵工坊</h2></div><button id="closeSmith" class="close-btn">離開</button></div><div class="smith-layout"><section class="smith-scene-panel"><div class="smith-scene"><div class="forge-flame"></div><div class="forge-body"></div><div class="anvil-body"></div><div class="smith-smoke"></div></div><div class="smith-hero">壁爐燃燒，鐵砧迸出火花。這裡可以擴充技能孔、磨鋒武器，或直接買下一顆新的 Support。</div><div id="smithGoldLine" class="smith-gold-line"></div></section><section class="smith-offers"><div class="pane-kicker">可購買工藝</div><div id="smithChoices" class="choice-grid smith-grid"></div></section></div></div></div>
 <div id="end" class="end hidden"><div class="end-card"><h2 id="endTitle"></h2><p id="endText"></p><button id="again" class="action">再次踏入裂界</button></div></div>
+<script src="js/assets.js?v=021"></script>
 <script>
-window.ASSET_DATA={};
-window.GRIMPATH_ASSETS=["assets/decors/altar_ruin.webp", "assets/decors/flower_patch.webp", "assets/decors/grass_patch.webp", "assets/decors/hut_ruin.webp", "assets/decors/stump_patch.webp", "assets/decors/swamp_patch.webp", "assets/decors/tower_ruin.webp", "assets/maptiles/grass.webp", "assets/maptiles/road_corner_ne.webp", "assets/maptiles/road_corner_se.webp", "assets/maptiles/road_corner_sw.webp", "assets/maptiles/road_cross.webp", "assets/maptiles/road_straight_h.webp", "assets/maptiles/road_straight_v.webp", "assets/maptiles/road_t_n.webp", "assets/monsters/boss.webp", "assets/monsters/cultist.webp", "assets/monsters/shaman.webp", "assets/monsters/stalker.webp", "assets/monsters/wolf.webp"];
-window.GRIMPATH_BOOT=async()=>{
-  const pairs=await Promise.all(window.GRIMPATH_ASSETS.map(async p=>{
-    const r=await fetch(p+'.b64?v=021',{cache:'no-store'});
-    if(!r.ok)throw new Error('asset '+p+' '+r.status);
-    return [p,'data:image/webp;base64,'+(await r.text()).trim()];
-  }));
-  for(const [k,v] of pairs)window.ASSET_DATA[k]=v;
-  const files=['js/data.js','js/world.js','js/ui.js','js/combat.js','js/events.js'];
-  for(const f of files)await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=f+'?v=021';s.onload=resolve;s.onerror=reject;document.body.appendChild(s)});
-};
-window.GRIMPATH_BOOT().catch(err=>{console.error(err);document.body.innerHTML='<pre style="color:#eee;background:#111;padding:20px">GRIMPATH 載入失敗\n'+String(err)+'</pre>'});
+(async()=>{
+ try{
+  await loadGrimpathAssets();
+  for(const file of ['js/data.js','js/world.js','js/road.js','js/ui.js','js/combat.js','js/events.js']){
+   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=file+'?v=021';s.onload=resolve;s.onerror=()=>reject(new Error('failed '+file));document.body.appendChild(s)});
+  }
+ }catch(err){console.error(err);document.body.innerHTML='<pre style="color:#eee;background:#111;padding:20px;white-space:pre-wrap">GRIMPATH v0.21 載入失敗\n'+String(err)+'</pre>'}
+})();
 </script></body></html>
