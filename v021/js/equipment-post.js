@@ -62,6 +62,6 @@
  `;
  document.head.appendChild(style);
 
- const normalizeBattleLine=()=>{const el=document.querySelector('#battleWeaponLine'),w=game?.loadout?.weapon;if(!el||!w)return;const form=weaponAttackForm(w),cls=weaponDamageClass(w);let html=el.innerHTML;html=html.replace(/·\s*\d+\s*投射物\s*·/,`· ${cls} · ${form}${form==='投射物'?` ×${compileBuild(w,window.GRIMSKILL?.supportIds?window.GRIMSKILL.supportIds(game.loadout):(game.loadout.supports||[]),game.loadout.passives||{}).projectiles}`:''} ·`);el.innerHTML=html};
+ const normalizeBattleLine=()=>{const el=document.querySelector('#battleWeaponLine'),w=game?.loadout?.weapon;if(!el||!w)return;const form=weaponAttackForm(w),cls=weaponDamageClass(w);const html=el.innerHTML;const next=html.replace(/·\s*\d+\s*投射物\s*·/,`· ${cls} · ${form}${form==='投射物'?` ×${compileBuild(w,window.GRIMSKILL?.supportIds?window.GRIMSKILL.supportIds(game.loadout):(game.loadout.supports||[]),game.loadout.passives||{}).projectiles}`:''} ·`);if(next!==html)el.innerHTML=next};
  const line=document.querySelector('#battleWeaponLine');if(line)new MutationObserver(normalizeBattleLine).observe(line,{childList:true,subtree:true,characterData:true});
 })();
