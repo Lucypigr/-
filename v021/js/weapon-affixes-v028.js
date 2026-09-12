@@ -96,7 +96,7 @@
   window.rollBuildDamage=(b,rng=Math.random)=>{const lo=Number(b?.damageMin??b?.damage??0),hi=Number(b?.damageMax??b?.damage??lo);return lo+(hi-lo)*rng()};
 
   const previousReset=Game.prototype.reset;
-  Game.prototype.reset=function(seed){previousReset.call(this,seed);state(this);prepareWeapon(this.loadout.weapon,{level:1,rarity:'common',rng:this.rng,identified:true});syncWeaponHp(this)};
+  Game.prototype.reset=function(seed){previousReset.call(this,seed);this.affixState={identifyStones:0,appliedWeaponHpBonus:0};prepareWeapon(this.loadout.weapon,{level:1,rarity:'common',rng:this.rng,identified:true});syncWeaponHp(this)};
 
   const previousResolve=Game.prototype.resolveTile;
   Game.prototype.resolveTile=function(t){
